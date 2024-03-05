@@ -3,7 +3,7 @@ import { cgen } from "../server-modules/util"
 export default function PageShell({ children, title, afterBody, scriptName, bodyClass }: PageShellProps) {
     return (<>
         {"<!DOCTYPE html>"}
-        <html class="dark">
+        <html>
             <head>
                 <link rel="stylesheet" href="/styles.css" />
                 <title>{title || "Dollar Waitlist"}</title>
