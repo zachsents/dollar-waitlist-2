@@ -89,7 +89,7 @@ app.post("/projects/:projectId/settings/:tab", authenticate(), async (req: Reque
     })
 
     const [fields, files] = await formParser.parse(req)
-    console.log(fields, Object.keys(files))
+    // console.log(fields, Object.keys(files))
 
     const selectFirstInFields = (...fieldNames: string[]) => _.omitBy(
         _.mapValues(

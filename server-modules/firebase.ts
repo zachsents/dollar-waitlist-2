@@ -62,7 +62,7 @@ export async function fetchProject(projectId: string, mask?: string[]) {
 
 export async function updateProject(projectId: string, updates: Record<string, any>) {
 
-    console.log("Updates:", updates)
+    // console.log("Updates:", updates)
 
     const updateMaskFields = Object.keys(updates)
     // had issues where the backticked props weren't getting added to the document.
