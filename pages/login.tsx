@@ -13,12 +13,12 @@ export default function LoginPage({ req }: PageProps) {
     return (
         <PageShell bodyClass="bg-gray-100">
             <div class="w-screen h-screen flex justify-center items-center">
-                <div class="bg-white border shadow-md rounded-xl p-10 flex flex-col items-stretch gap-4">
+                <div class="bg-white border-default shadow-md rounded-xl p-10 flex flex-col items-stretch gap-4">
                     <h1 class="font-bold text-lg text-center">
                         Login to Dollar Waitlist
                     </h1>
 
-                    <p class="text-sm text-gray-500">
+                    <p class="text-sm text-light">
                         If you don't have an account, one will be created.
                     </p>
 
@@ -31,7 +31,7 @@ export default function LoginPage({ req }: PageProps) {
 
                     {req.cookies.lastLogin &&
                         <Anchor
-                            class="text-sm text-gray-500 text-center flex gap-1 items-center justify-center"
+                            class="text-sm text-light text-center flex gap-1 items-center justify-center"
                             href="#" onclick={signInWithLastLogin}
                         >
                             <TablerIcon name="clock" />

@@ -24,7 +24,7 @@ export default function SettingsContainer({ title, children }: SettingsContainer
                 <p 
                     x-show="touched && !error" 
                     x-text="dirty ? 'Saving...' : 'Saved'" 
-                    class="text-sm text-gray-500"
+                    class="text-sm text-light"
                     style={{ display: "none" }}
                 />
                 <p 

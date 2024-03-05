@@ -20,7 +20,7 @@ function FooterLink({ children, href }: { children: JSX.Element, href: string })
     return (
         <Anchor
             href={href} target="_blank"
-            class="text-sm text-gray-400 flex gap-1 items-center"
+            class="text-sm text-lighter flex gap-1 items-center"
         >
             <span>{children}</span>
             <TablerIcon name="external-link" />

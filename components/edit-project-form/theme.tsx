@@ -8,7 +8,7 @@ export default function ThemeSettings() {
                 description="The original DollarWaitlist theme. A modern, clean, flat design."
                 active
             />
-            <p class="text-sm text-gray-500">
+            <p class="text-sm text-light">
                 More themes coming soon!
             </p>
         </div>
@@ -19,7 +19,7 @@ export default function ThemeSettings() {
 function ThemeCard({ name, description, active }: ThemeCardProps) {
     return (
         <button
-            class="bg-white rounded-lg shadow-md flex flex-col items-start gap-2 p-4 border data-[active]:outline data-[active]:outline-yellow-500 text-left hover:scale-105 hover:shadow-lg transition"
+            class="bg-white rounded-lg shadow-md flex flex-col items-start gap-2 p-4 border-default data-[active]:outline data-[active]:outline-yellow-500 text-left hover:scale-105 hover:shadow-lg transition"
             {...active && { "data-active": "true" }}
             type="button"
         >

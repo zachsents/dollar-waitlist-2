@@ -3,6 +3,29 @@
 @tailwind utilities;
 
 html {
-    @apply text-neutral-900 dark:text-neutral-200;
     font-family: 'DM Sans', sans-serif;
+}
+
+hr {
+    @apply dark:border-neutral-700;
+}
+
+@layer utilities {
+    .text-regular {
+        @apply text-neutral-900 dark:text-neutral-200;
+    }
+
+    .text-light {
+        @apply text-gray-500 dark:text-neutral-400;
+    }
+
+    .text-lighter {
+        @apply text-gray-400 dark:text-neutral-500;
+    }
+
+    .border-default {
+        border-width: 1px;
+        @apply border-gray-200 dark:border-neutral-700;
+        border-style: solid;
+    }
 }

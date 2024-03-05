@@ -8,7 +8,7 @@ export default function ProjectCardList({ projectList }: ProjectCardListProps) {
                 <ProjectCard key={project.id} {...project} />
             ))}
         </div> :
-        <p class="text-small text-gray-500 text-center">
+        <p class="text-small text-light text-center">
             No projects found.
         </p>
 }

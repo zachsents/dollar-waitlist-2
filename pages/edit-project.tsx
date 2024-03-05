@@ -24,7 +24,7 @@ export default async function EditProjectPage({ req }: PageProps) {
 
             <div class="px-8 max-w-5xl mx-auto flex flex-col gap-8 items-stretch">
                 <Breadcrumbs
-                    class="text-sm text-gray-500"
+                    class="text-sm text-light"
                     segments={[
                         <Anchor href="/">
                             Projects

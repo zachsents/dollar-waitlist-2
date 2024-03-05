@@ -16,7 +16,7 @@ export default function Menu({ label, children, ...props }: MenuProps) {
                 {label}
             </summary>
             <div
-                class="bg-white px-4 py-2 shadow-lg rounded-md absolute right-0 w-40 flex flex-col items-stretch gap-1"
+                class="bg-white dark:bg-neutral-800 px-4 py-2 shadow-lg rounded-md absolute right-0 w-40 flex flex-col items-stretch gap-1"
             >
                 {children}
             </div>

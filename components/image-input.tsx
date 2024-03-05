@@ -17,7 +17,7 @@ export default function ImageInput({ label, nestInLabel, labelProps, value, clas
                 x-show="imageSource"
                 x-bind:src="imageSource"
                 onclick={clickInput}
-                class="max-h-24 rounded-lg cursor-pointer border hover:opacity-50 transition-opacity"
+                class="max-h-24 rounded-lg cursor-pointer border-default hover:opacity-50 transition-opacity"
             />
 
             <Button

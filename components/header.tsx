@@ -24,9 +24,10 @@ export default function Header() {
 
                 <div class="flex gap-4 items-center justify-end">
                     <Menu label={
-                        <span class="text-sm text-gray-500">
-                            Hey <span hx-get="/api/user/displayName" hx-trigger="load" class="text-neutral-900" />
-                        </span>
+                        <div class="text-sm">
+                            <span class="text-light">Hey</span>{" "}
+                            <span hx-get="/api/user/displayName" hx-trigger="load" />
+                        </div>
                     }>
                         {/* <Anchor href="/account" class="text-right text-sm">
                             My Account

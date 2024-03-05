@@ -1,8 +1,9 @@
+import { cgen } from "../server-modules/util"
 
 export default function PageShell({ children, title, afterBody, scriptName, bodyClass }: PageShellProps) {
     return (<>
         {"<!DOCTYPE html>"}
-        <html>
+        <html class="dark">
             <head>
                 <link rel="stylesheet" href="/styles.css" />
                 <title>{title || "Dollar Waitlist"}</title>
@@ -15,7 +16,9 @@ export default function PageShell({ children, title, afterBody, scriptName, body
                 <meta name="htmx-config" content='{"includeIndicatorStyles": false}' />
             </head>
 
-            <body class={`dark:bg-neutral-900 min-h-screen relative ${bodyClass || ""}`}>
+            <body
+                class={cgen("dark:bg-neutral-900 min-h-screen relative text-regular", bodyClass)}
+            >
                 {children}
             </body>
 
