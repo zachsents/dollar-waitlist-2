@@ -1,6 +1,6 @@
 import { cgen } from "../server-modules/util"
 
-export default function PageShell({ children, title, afterBody, scriptName, bodyClass }: PageShellProps) {
+export default function PageShell({ children, title, afterBody, scriptName, ...props }: PageShellProps) {
     return (<>
         {"<!DOCTYPE html>"}
         <html>
@@ -17,7 +17,8 @@ export default function PageShell({ children, title, afterBody, scriptName, body
             </head>
 
             <body
-                class={cgen("dark:bg-neutral-900 min-h-screen relative text-regular", bodyClass)}
+                {...props}
+                class={cgen("dark:bg-neutral-900 min-h-screen relative text-regular", props)}
             >
                 {children}
             </body>
@@ -29,10 +30,6 @@ export default function PageShell({ children, title, afterBody, scriptName, body
 
             <script src="https://unpkg.com/htmx.org@1.9.10" />
             <script src="https://unpkg.com/htmx.org/dist/ext/json-enc.js" />
-
-            <script type="module">
-                import motion from "https://cdn.jsdelivr.net/npm/motion@10.17.0/+esm"
-            </script>
         </html>
     </>)
 }
@@ -42,6 +39,5 @@ type PageShellProps = {
     title?: string,
     afterBody?: JSX.Element | JSX.Element[],
     scriptName?: string,
-    bodyClass?: string,
     children?: JSX.Element | JSX.Element[]
-}
+} & JSX.IntrinsicElements["body"]

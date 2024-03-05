@@ -5,14 +5,13 @@ import { renderToString } from "@kitajs/html/suspense"
 import cookieParser from "cookie-parser"
 import express, { type NextFunction, type Request, type Response } from "express"
 import type { DecodedIdToken } from "firebase-admin/auth"
-import formidable, { type File } from "formidable"
+import formidable from "formidable"
 import _ from "lodash"
 import morgan from "morgan"
 import path from "path"
-import sharp from "sharp"
 import { z } from "zod"
 import { admin, fetchProject, fetchProjectsForUser, updateProject } from "./server-modules/firebase"
-import { SettingsTabs, encodeImage } from "./server-modules/util"
+import { SettingsTabs, createUpdatesForForm, encodeImage, stripeHeaders } from "./server-modules/util"
 
 
 const app = express()
@@ -103,7 +102,7 @@ app.post("/projects/:projectId/settings/:tab", authenticate(), async (req: Reque
         case SettingsTabs.General:
             await updateProject(req.params.projectId, {
                 ...selectFirstInFields("name", "colors.primary"),
-                onlyShowLogo: Boolean(fields.onlyShowLogo),
+                onlyShowLogo: Boolean(fields.onlyShowLogo?.[0]),
                 ...files.logo && {
                     logo: await encodeImage(files.logo[0]),
                 },
@@ -111,9 +110,13 @@ app.post("/projects/:projectId/settings/:tab", authenticate(), async (req: Reque
             break
         case SettingsTabs.Theme: break
         case SettingsTabs.Signups:
+            const hasSignupGoal = Boolean(fields.signupGoal?.[0])
             await updateProject(req.params.projectId, {
-                signupGoal: parseInt(fields.signupGoal?.toString() ?? "0"),
-                allowOverflowSignups: Boolean(fields.allowOverflowSignups),
+                hasSignupGoal,
+                signupGoal: hasSignupGoal ?
+                    parseInt(fields.signupGoal?.toString() ?? "0") :
+                    null,
+                allowOverflowSignups: Boolean(fields.allowOverflowSignups?.[0]),
             })
             break
         case SettingsTabs.Hero:
@@ -124,17 +127,19 @@ app.post("/projects/:projectId/settings/:tab", authenticate(), async (req: Reque
             ))
             break
         case SettingsTabs.Features:
-            if (!fields["content.features"])
-                return res.sendStatus(400)
-
+            const featureUpdates = await createUpdatesForForm({
+                fields,
+                files,
+                extractId: key => key.match(/(?<=content\.features\.)\w+/)?.[0] ?? "",
+                databaseKey: "content.features",
+                projectId: req.params.projectId,
+                simpleKeys: ["title", "description", "icon", "gradientColor"],
+                booleanKeys: ["addGradient"],
+                imageKeys: ["image"],
+                imageResize: 500,
+            })
             await updateProject(req.params.projectId, {
-                "content.features": Object.fromEntries(
-                    fields["content.features"]!.map((value, i) => {
-                        const parsed = JSON.parse(value)
-                        parsed.order = i
-                        return [parsed.id, parsed]
-                    })
-                ),
+                ...featureUpdates,
                 "content.otherFeatures": fields["content.otherFeatures"]?.[0].split("\n")
                     .map(line => line.trim()).filter(Boolean) ?? [],
             })
@@ -160,55 +165,73 @@ app.post("/projects/:projectId/settings/:tab", authenticate(), async (req: Reque
             })
             break
         case SettingsTabs.Team:
-
-            const includedIds = new Set(
-                Object.keys(fields)
-                    .map(key => key.match(/(?<=content\.team\.)\w+/)?.[0])
-                    .filter(Boolean)
-            )
-
-            const orderUpdates = Object.fromEntries(
-                [...includedIds].map((id, i) => [`content.team.${id}.order`, i])
-            )
-
-            const avatarUpdates = Object.fromEntries(
-                await Promise.all(
-                    [...includedIds]
-                        .map(id => `content.team.${id}.avatar`)
-                        .filter(avatarKey => avatarKey in files)
-                        .map(avatarKey => encodeImage(files[avatarKey]![0]).then(avatar => [avatarKey, avatar]))
-                )
-            )
-
-            const currentProject = await fetchProject(req.params.projectId, ["content.team"])
-            const currentIds = new Set(Object.keys(currentProject.content?.team || {}))
-            const deletions = Object.fromEntries(
-                [...currentIds].filter(id => !includedIds.has(id))
-                    .map(id => [`content.team.${id}`, undefined])
-            )
-
-            await updateProject(req.params.projectId, {
-                ...selectFirstInFields(
-                    ...Object.keys(fields)
-                        .filter(key => /\.(?:name|title|twitter|linkedin)$/.test(key))
-                ),
-                ..._.mapValues(
-                    selectFirstInFields(
-                        ...Object.keys(fields)
-                            .filter(key => key.endsWith(".badges"))
-                    ),
-                    (value: string) => value.split("\n").map(line => line.trim()).filter(Boolean)
-                ),
-                ...orderUpdates,
-                ...avatarUpdates,
-                ...deletions,
-            })
+            await updateProject(req.params.projectId, await createUpdatesForForm({
+                fields,
+                files,
+                extractId: key => key.match(/(?<=content\.team\.)\w+/)?.[0] ?? "",
+                databaseKey: "content.team",
+                projectId: req.params.projectId,
+                simpleKeys: ["name", "title", "twitter", "linkedin"],
+                splitKeys: ["badges"],
+                imageKeys: ["avatar"],
+            }))
             break
         default:
             return res.sendStatus(404)
     }
 
     res.sendStatus(204)
+})
+
+
+app.get("/projects/:projectId/signup", async (req: Request, res: Response) => {
+    const data = await fetch("https://api.stripe.com/v1/checkout/sessions", {
+        method: "POST",
+        headers: stripeHeaders,
+        body: new URLSearchParams({
+            "line_items[0][price]": "price_1Or62aHYINHn5cdTih9cTyTH",
+            "line_items[0][quantity]": "1",
+            "metadata[projectId]": req.params.projectId,
+            "mode": "payment",
+            "success_url": `http://${req.headers.host}/projects/${req.params.projectId}/successfulsignup?id={CHECKOUT_SESSION_ID}`,
+        }).toString()
+    }).then(response => response.json())
+
+    if (data.error) {
+        console.error(data.error)
+        res.sendStatus(500)
+        return
+    }
+
+    res.redirect(data.url)
+})
+
+app.get("/projects/:projectId/successfulsignup", async (req: Request, res: Response) => {
+
+    const sessionId = req.query.session_id
+
+    if (!sessionId) {
+        res.sendStatus(400)
+        return
+    }
+
+    const sessionData = await fetch(`https://api.stripe.com/v1/checkout/sessions/${sessionId}`, {
+        method: "GET",
+        headers: stripeHeaders,
+    }).then(response => response.json())
+
+    if (sessionData.error) {
+        console.error(sessionData.error)
+        res.sendStatus(500)
+        return
+    }
+
+    const projectId = sessionData.metadata.projectId
+    const email = sessionData.customer_details?.email || sessionData.customer_email
+
+    // TO DO: store signup
+
+    res.send(`<script>window.onload = () => { localStorage.setItem("dwsignup-${projectId}", "${email}"); window.location.href = "/projects/${projectId}" }</script>`)
 })
 
 
@@ -233,6 +256,7 @@ app.get(
 
 // Pages not requiring authentication
 app.get("/login", requireNotLoggedIn, renderPage())
+app.get("/projects/:projectId", renderPage("view-waitlist"))
 
 // Catch-all
 app.get("/*", renderPage())

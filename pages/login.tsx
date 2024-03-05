@@ -11,7 +11,7 @@ export default function LoginPage({ req }: PageProps) {
     const signInWithLastLogin = `event.preventDefault(); signIn("${req.cookies.lastLogin}")`
 
     return (
-        <PageShell bodyClass="bg-gray-100">
+        <PageShell class="bg-gray-100">
             <div class="w-screen h-screen flex justify-center items-center">
                 <div class="bg-white border-default shadow-md rounded-xl p-10 flex flex-col items-stretch gap-4">
                     <h1 class="font-bold text-lg text-center">

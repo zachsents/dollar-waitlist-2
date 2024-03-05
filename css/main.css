@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+[x-cloak] { display: none !important; }
+
 html {
     font-family: 'DM Sans', sans-serif;
 }
@@ -28,4 +30,16 @@ hr {
         @apply border-gray-200 dark:border-neutral-700;
         border-style: solid;
     }
+
+    .glowy-bg {
+        background-image:
+            radial-gradient(10% 10% at 25% 10%, var(--wl-primary-light-2) 0%, transparent 100%),
+            radial-gradient(10% 10% at 75% 75%, var(--wl-primary-light-2) 0%, transparent 100%),
+            radial-gradient(8% 8% at 50% 20%, var(--wl-primary-light-2) 0%, transparent 100%),
+            radial-gradient(12% 12% at 10% 80%, var(--wl-primary-light-2) 0%, transparent 100%),
+            radial-gradient(6% 6% at 90% 50%, var(--wl-primary-light-2) 0%, transparent 100%),
+            radial-gradient(15% 15% at 50% 90%, var(--wl-primary-light-2) 0%, transparent 100%);
+    }
 }
+
+

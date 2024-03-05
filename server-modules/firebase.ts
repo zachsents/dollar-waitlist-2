@@ -124,6 +124,10 @@ function convertToFirestoreValue(value: any): any {
     if (Array.isArray(value))
         return { arrayValue: { values: value.map(convertToFirestoreValue) } }
 
+    if (value === null) {
+        return { nullValue: null }
+    }
+
     if (typeof value === "object")
         return {
             mapValue: {

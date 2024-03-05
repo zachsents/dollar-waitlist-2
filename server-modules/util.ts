@@ -1,8 +1,9 @@
 import type { Request } from "express"
 import _ from "lodash"
-import type { FormattedDocument } from "./firebase"
-import type { File } from "formidable"
+import { fetchProject, type FormattedDocument } from "./firebase"
+import type { Fields, File, Files } from "formidable"
 import sharp from "sharp"
+import numeral from "numeral"
 
 export function evfn(fn: (event: Event, element: HTMLElement) => void): string {
     return `(${fn.toString()})(event, this)`
@@ -19,12 +20,41 @@ export type PageProps = {
 }
 
 
+export type ProjectFeature = {
+    title: string
+    description: string
+    icon: string
+    order: number
+    addGradient: boolean
+    gradientColor: string
+    image: string
+}
+
+
+export type ProjectBenefit = {
+    title: string
+    description: string
+    icon: string
+    order: number
+}
+
+export type ProjectTeamMember = {
+    name: string
+    title: string
+    badges: string[]
+    twitter: string
+    linkedin: string
+    avatar: string
+    order: number
+}
+
 export type Project = {
     owner: string
     name: string
     logo: string
     onlyShowLogo: boolean
-    maxSignupCount: number
+    signupGoal: number
+    hasSignupGoal: boolean
     signupCount: number
     allowOverflowSignups: boolean
     colors: {
@@ -35,29 +65,11 @@ export type Project = {
         headline: string
         description: string
         eyebrow: string
-        features: {
-            title: string
-            description: string
-            icon: string
-            order: number
-        }[]
+        features: Record<string, ProjectFeature>
         otherFeatures: string[]
-        benefits: {
-            title: string
-            description: string
-            icon: string
-            order: number
-        }[]
+        benefits: Record<string, ProjectBenefit>
         tweets: string[]
-        team: {
-            name: string
-            title: string
-            badges: string[]
-            twitter: string
-            linkedin: string
-            avatar: string
-            order: number
-        }[]
+        team: Record<string, ProjectTeamMember>
     }
 } & FormattedDocument
 
@@ -143,7 +155,7 @@ export const settingsTabLabels = {
 }
 
 
-export async function encodeImage(file: File) {
+export async function encodeImage(file: File, resize: number = 300) {
     const fileBuffer = await Bun.file(file.filepath).arrayBuffer()
 
     if (file.mimetype === "text/svg+xml") {
@@ -154,8 +166,104 @@ export async function encodeImage(file: File) {
     }
 
     return await sharp(fileBuffer)
-        .resize({ height: 300, withoutEnlargement: true })
-        .webp()
+        .resize({ height: resize, withoutEnlargement: true })
+        .webp({ nearLossless: true })
         .toBuffer()
         .then(buf => `data:image/webp;base64, ${buf.toString("base64")}`)
+}
+
+
+export function selectFirstInFields(fields: Fields<string>, ...fieldNames: string[]) {
+    return _.omitBy(
+        _.mapValues(
+            _.pick(fields, ...fieldNames),
+            value => Array.isArray(value) ? value[0] : value
+        ),
+        _.isNil
+    )
+}
+
+
+export async function createUpdatesForForm(options: {
+    fields: Fields<string>,
+    files: Files<string>,
+    extractId: (key: string) => string,
+    projectId: string,
+    databaseKey: string,
+    simpleKeys?: string[],
+    splitKeys?: string[],
+    imageKeys?: string[],
+    booleanKeys?: string[],
+    imageResize?: number,
+}) {
+
+    const includedIds = new Set(
+        Object.keys(options.fields)
+            .map(options.extractId)
+            .filter(Boolean)
+    )
+
+    const orderUpdates = Object.fromEntries(
+        [...includedIds].map((id, i) => [`${options.databaseKey}.${id}.order`, i])
+    )
+
+    const imageUpdates = options.imageKeys && Object.fromEntries(
+        await Promise.all(
+            [...includedIds]
+                .flatMap(id => options.imageKeys!.map(k => `${options.databaseKey}.${id}.${k}`))
+                .filter(imageKey => imageKey in options.files)
+                .map(
+                    imageKey => encodeImage(options.files[imageKey]![0], options.imageResize)
+                        .then(avatar => [imageKey, avatar])
+                )
+        )
+    )
+
+    const currentProject = await fetchProject(options.projectId, [options.databaseKey])
+    const currentIds = new Set(Object.keys(_.get(currentProject, options.databaseKey) || {}))
+    const deletions = Object.fromEntries(
+        [...currentIds].filter(id => !includedIds.has(id))
+            .map(id => [`${options.databaseKey}.${id}`, undefined])
+    )
+
+    return {
+        ...options.simpleKeys && selectFirstInFields(
+            options.fields,
+            ...Object.keys(options.fields)
+                .filter(key => options.simpleKeys!.some(k => key.endsWith(k)))
+        ),
+        ...options.splitKeys && _.mapValues(
+            selectFirstInFields(
+                options.fields,
+                ...Object.keys(options.fields)
+                    .filter(key => options.splitKeys!.some(k => key.endsWith(k)))
+            ),
+            (value: string) => value.split("\n").map(line => line.trim()).filter(Boolean)
+        ),
+        ...options.booleanKeys && _.mapValues(
+            selectFirstInFields(
+                options.fields,
+                ...Object.keys(options.fields)
+                    .filter(key => options.booleanKeys!.some(k => key.endsWith(k)))
+            ),
+            value => Boolean(value)
+        ),
+        ...orderUpdates,
+        ...imageUpdates,
+        ...deletions,
+    }
+}
+
+export function formatNumber(num: number) {
+    if (num == null)
+        return ""
+
+    return numeral(num).format("0.0a")
+        .replace(".0", "")
+}
+
+
+export const stripeHeaders = {
+    "Content-Type": "application/x-www-form-urlencoded",
+    "Authorization": "Basic " + Buffer.from(`${process.env.STRIPE_API_KEY}:`).toString("base64"),
 }

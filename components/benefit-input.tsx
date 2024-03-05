@@ -36,7 +36,7 @@ function BenefitInput({ id, title, description, icon }: BenefitInputProps) {
             <div class="flex justify-between items-center gap-4 col-span-full">
                 <p class="font-bold">Benefit</p>
 
-                <div class="flex items-center gap-1 text-xs opacity-50">
+                <div class="flex items-center gap-1 text-xs opacity-50 hover:opacity-100 transition-opacity">
                     <Button
                         color="gray"
                         onclick={moveDown.trim()}

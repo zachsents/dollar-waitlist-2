@@ -11,7 +11,10 @@ export default async function GeneralSettings({ projectId }: SettingsProps) {
     return (
         <div 
             class="grid grid-cols-[12rem_auto] gap-6 items-center"
-            x-data={alpineJsonStringify({ primaryColor: project.colors?.primary || "#000000" })}
+            x-data={alpineJsonStringify({ 
+                primaryColor: project.colors?.primary || "#000000",
+                onlyShowLogo: project.onlyShowLogo || false,
+            })}
         >
             <Input
                 label="Project Name"
@@ -37,11 +40,15 @@ export default async function GeneralSettings({ projectId }: SettingsProps) {
             <Input
                 label="Only show logo"
                 description="If you want to only show the logo and not the project name. This is useful if your logo already contains the project name."
-                name="onlyShowLogo"
                 type="checkbox"
-                checked={project.onlyShowLogo}
+                x-model="onlyShowLogo"
                 class="justify-self-start h-6 aspect-square"
                 nestInLabel={false}
+            />
+            <input 
+                hidden
+                name="onlyShowLogo" 
+                x-bind:value="onlyShowLogo || ''"
             />
 
             <hr class="col-span-2" />

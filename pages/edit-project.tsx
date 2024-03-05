@@ -19,7 +19,7 @@ export default async function EditProjectPage({ req }: PageProps) {
     const SettingsComponent = require(`../components/edit-project-form/${currentTab}`).default
 
     return (
-        <PageShell bodyClass="bg-gray-100 pb-40">
+        <PageShell class="bg-gray-100 pb-40">
             <Header />
 
             <div class="px-8 max-w-5xl mx-auto flex flex-col gap-8 items-stretch">

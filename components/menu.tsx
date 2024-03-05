@@ -1,10 +1,10 @@
-import { evfn } from "../server-modules/util"
+import { cgen, evfn } from "../server-modules/util"
 
 
 export default function Menu({ label, children, ...props }: MenuProps) {
     return (
-        <details {...props} class="relative group"
-            onclick="event.stopPropagation()"
+        <details {...props} class={cgen("relative group", props)}
+            // onclick="event.stopPropagation()"
             ontoggle={evfn((ev, el) => {
                 if (el.hasAttribute('open'))
                     window.addEventListener("click", () => {
@@ -12,7 +12,10 @@ export default function Menu({ label, children, ...props }: MenuProps) {
                     }, { once: true })
             })}
         >
-            <summary class="cursor-pointer px-2 py-1 rounded-md hover:bg-gray-500/10 transition-colors select-none marker:content-none">
+            <summary
+                class="cursor-pointer px-2 py-1 rounded-md hover:bg-gray-500/10 transition-colors select-none marker:content-none"
+                onclick="event.stopPropagation()"
+            >
                 {label}
             </summary>
             <div

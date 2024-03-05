@@ -33,7 +33,7 @@ export default function TeamInput({ id, name, avatar, title, badges, linkedin, t
         >
             <div class="flex justify-between items-center gap-4 col-span-full">
                 <p class="font-bold">Team Member</p>
-                <div class="flex items-center gap-1 text-xs opacity-50">
+                <div class="flex items-center gap-1 text-xs opacity-50 hover:opacity-100 transition-opacity">
                     <Button
                         color="gray"
                         onclick={moveDown.trim()}
