@@ -50,15 +50,24 @@ export async function fetchProjectsForUser(userId: string) {
 }
 
 
-export async function fetchProject(projectId: string) {
-    const document = await firestoreRequest(`/projects/${projectId}`)
+export async function fetchProject(projectId: string, mask?: string[]) {
+    const document = await firestoreRequest(`/projects/${projectId}`, {
+        queryParams: mask ? {
+            "mask.fieldPaths": mask
+        } : {}
+    })
     return formatDocument(document) as Project
 }
 
 
 export async function updateProject(projectId: string, updates: Record<string, any>) {
 
+    console.log("Updates:", updates)
+
     const updateMaskFields = Object.keys(updates)
+    // had issues where the backticked props weren't getting added to the document.
+    // just gonna avoid dashes in IDs for now.
+    // .map(key => `\`${key}\``)
 
     const nestedUpdates = Object.entries(updates).reduce((acc, [key, value]) => {
         _.set(acc, key, value)
@@ -120,7 +129,7 @@ function convertToFirestoreValue(value: any): any {
             mapValue: {
                 fields: Object.fromEntries(
                     Object.entries(value)
-                        .filter(([_, val]) => val !== undefined)                        
+                        .filter(([_, val]) => val !== undefined)
                         .map(([key, val]) => [key, convertToFirestoreValue(val)])
                 )
             }

@@ -1,56 +1,44 @@
-import type { Request } from "express"
-import Button from "./button"
 
 
-export default function SettingsContainer({ title, children, req }: SettingsContainerProps) {
-
-    const reset = `
-        $('.component-tabs--tab[data-active]', this.closest('.component-tabs')).click()
-    `
-    
+export default function SettingsContainer({ title, children }: SettingsContainerProps) {
     return (
         <form 
-            x-data="{ touched: false }"
-            x-on:change="touched = true"
+            x-data="{ touched: false, dirty: false, error: false }"
+            x-on:change="touched = true; dirty = true"
+            {...{ "x-on:htmx:after-request.camel": "dirty = false; error = $event.detail.failed" }}
 
-            hx-post={`/api/projects/${req.params.projectId}/settings`}
+            hx-post="#"
+            hx-trigger="change delay:500ms"
             hx-encoding="multipart/form-data"
-            hx-trigger="submit"
-            hx-target="this"
-            hx-vals="js:{ avatarMap: $$('.team-input-avatar', event.target).slice(0, -1).map(el => !!el.value) }"
-            hx-on-htmx-after-request={reset.trim()}
-            hx-swap="outerHTML"
+            hx-sync="this:replace"
+            hx-on--after-request="if('name' in event.detail.requestConfig.parameters) htmx.trigger('#project-title', 'change')"
 
             class="flex flex-col gap-4 items-stretch"
+            onsubmit="event.preventDefault()"
         >
             <div class="flex items-center justify-between gap-8">
                 <h3 class="text-xl font-bold">
                     {title}
                 </h3>
 
-                <div class="flex items-center gap-2">
-                    <Button
-                        color="red" leftIcon="reload" class="text-xs"
-                        type="button"
-                        x-show="touched"
-                        onclick={reset.trim()}
-                    >
-                        Reset
-                    </Button>
-                    <Button
-                        color="green" leftIcon="check" class="text-xs"
-                        type="submit"
-                        x-show="touched"
-                        htmx="ancestor"
-                    >
-                        Save Changes
-                    </Button>
-                </div>
+                <p 
+                    x-show="touched && !error" 
+                    x-text="dirty ? 'Saving...' : 'Saved'" 
+                    class="text-sm text-gray-500"
+                    style={{ display: "none" }}
+                />
+                <p 
+                    x-show="error" 
+                    class="text-sm text-red-600"
+                    style={{ display: "none" }}
+                >
+                    Error. Try refreshing the page.
+                </p>
             </div>
 
             <hr />
 
-            <div class="flex flex-col items-start gap-8">
+            <div class="flex flex-col items-stretch gap-8">
                 {children}
             </div>
         </form>
@@ -59,6 +47,5 @@ export default function SettingsContainer({ title, children, req }: SettingsCont
 
 type SettingsContainerProps = {
     title: string
-    req: Request
     children: JSX.Element | JSX.Element[]
 }

@@ -1,45 +1,55 @@
-import { randomId } from "../server-modules/util"
+import { cgen, randomId } from "../server-modules/util"
 
-export default function Input({ label, description, textarea, ...props }: InputProps) {
 
-    const id = randomId(props.name + "-")
+export default function Input({ label, textarea, nestInLabel = true, labelProps = {}, beforeInput, afterInput, description, ...props }: InputProps) {
 
-    const isLabelElement = typeof label === "string" && label.startsWith("<")
+    props.id ??= randomId(props.name || "input")
+    props.class = cgen("rounded-md px-2 py-1 border focus:shadow-md transition", props)
 
-    const inputComp = textarea ?
-        <textarea
-            cols="50" rows="2"
-            id={id}
-            {...props}
-            class={`rounded-md px-2 py-1 border focus:shadow-md transition ${props.class || ""}`}
-        >
+    labelProps.class = cgen("flex items-center gap-4", labelProps)
+
+    let inputComponent = textarea ?
+        <textarea rows="2" {...props}>
             {props.value}
         </textarea> :
-        <input
-            id={id}
-            {...props}
-            class={`rounded-md px-2 py-1 border focus:shadow-md transition ${props.class || ""}`}
-        />
+        <input {...props} />
 
-    const wrappedInputComp = label ?
-        <label for={id} class="flex items-center gap-4">
-            {isLabelElement ? label : <span class="w-36">{label}</span>}
-            {inputComp}
-        </label> :
-        inputComp
+    if (beforeInput || afterInput) {
+        inputComponent =
+            <div class="flex gap-2 items-center">
+                {beforeInput}
+                {inputComponent}
+                {afterInput}
+            </div>
+    }
 
-    return description ?
+    const labelInnerComponent =
         <div>
-            {wrappedInputComp}
-            <p class="text-sm text-gray-500 mt-1">
-                {description}
-            </p>
-        </div> :
-        wrappedInputComp
+            <p>{label}</p>
+            {description && <p class="text-xs text-gray-500">{description}</p>}
+        </div>
+
+    return label ?
+        nestInLabel ?
+            <label for={props.id as string} {...labelProps}>
+                {labelInnerComponent}
+                {inputComponent}
+            </label> :
+            <>
+                <label for={props.id as string} {...labelProps}>
+                    {labelInnerComponent}
+                </label>
+                {inputComponent}
+            </> :
+        inputComponent
 }
 
 export type InputProps = {
     label?: string | JSX.Element
-    description?: string
+    nestInLabel?: boolean
+    labelProps?: JSX.IntrinsicElements["label"]
     textarea?: boolean
+    beforeInput?: JSX.Element
+    afterInput?: JSX.Element
+    description?: string
 } & JSX.IntrinsicElements["input"] & JSX.IntrinsicElements["textarea"]

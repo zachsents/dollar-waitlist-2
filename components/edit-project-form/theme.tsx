@@ -1,21 +1,17 @@
-import type { SettingsProps } from "../../server-modules/util"
-import SettingsContainer from "../settings-container"
 
 
-export default function ThemeSettings({ req }: SettingsProps) {
+export default function ThemeSettings() {
     return (
-        <SettingsContainer title="Theme" req={req}>
-            <div class="grid grid-cols-3 items-center gap-8">
-                <ThemeCard
-                    name="Original"
-                    description="The original DollarWaitlist theme. A modern, clean, flat design."
-                    active
-                />
-                <p class="text-sm text-gray-500">
-                    More themes coming soon!
-                </p>
-            </div>
-        </SettingsContainer>
+        <div class="grid grid-cols-3 items-center gap-8">
+            <ThemeCard
+                name="Original"
+                description="The original DollarWaitlist theme. A modern, clean, flat design."
+                active
+            />
+            <p class="text-sm text-gray-500">
+                More themes coming soon!
+            </p>
+        </div>
     )
 }
 

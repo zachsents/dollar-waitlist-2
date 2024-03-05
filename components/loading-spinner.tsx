@@ -1,25 +1,21 @@
-import { htmxClasses, type HTMXMode } from "../server-modules/util"
+import { cgen, htmxClasses, type HTMXMode } from "../server-modules/util"
 import TablerIcon from "./tabler-icon"
 
-export default function LoadingSpinner({ iconName = "fidget-spinner", htmx, includeWrapper, size = "24px", ...props }: LoadingSpinnerProps) {
-
-    const htmxClass = htmx ?
-        `htmx-indicator hidden ${htmxClasses[htmx].flex}` :
-        "flex"
-
-    const wrapperClass = includeWrapper ?
-        "py-8" :
-        ""
-
+export default function LoadingSpinner({ iconName = "fidget-spinner", htmx, includeWrapper, size = 24, ...props }: LoadingSpinnerProps) {
     return (
         <div
             {...props}
-            class={`items-center justify-center ${wrapperClass} ${htmxClass} ${props.class || ""}`}
+            class={cgen(
+                "items-center justify-center",
+                htmx ? ["hidden", htmxClasses[htmx].flex] : "flex",
+                includeWrapper && "py-8",
+                props
+            )}
         >
             <TablerIcon
                 name={iconName}
                 class="animate-spin"
-                style={{ fontSize: size }}
+                style={{ fontSize: typeof size === "number" ? `${size}px` : size }}
             />
         </div>
     )
@@ -28,6 +24,6 @@ export default function LoadingSpinner({ iconName = "fidget-spinner", htmx, incl
 type LoadingSpinnerProps = {
     iconName?: string
     includeWrapper?: boolean
-    size?: string
+    size?: string | number
     htmx?: HTMXMode
 } & JSX.IntrinsicElements["div"]

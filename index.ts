@@ -10,7 +10,9 @@ import _ from "lodash"
 import morgan from "morgan"
 import path from "path"
 import sharp from "sharp"
+import { z } from "zod"
 import { admin, fetchProject, fetchProjectsForUser, updateProject } from "./server-modules/firebase"
+import { SettingsTabs, encodeImage } from "./server-modules/util"
 
 
 const app = express()
@@ -59,6 +61,14 @@ app.get("/api/user/displayName", authenticate(), async (req: Request, res: Respo
     })
 })
 
+app.get("/api/projects/:projectId/name", authenticate(), async (req: Request, res: Response) => {
+    const project = await fetchProject(req.params.projectId, ["name"])
+    res.format({
+        html: () => res.send(project.name),
+        json: () => res.json({ name: project.name }),
+    })
+})
+
 app.get("/api/projects", authenticate(), async (req: Request, res: Response) => {
 
     const user = (req as AuthenticatedRequest).currentUser
@@ -72,98 +82,131 @@ app.get("/api/projects", authenticate(), async (req: Request, res: Response) => 
     })
 })
 
-// app.get("/api/projects/:projectId/settings", authenticate(), async (req: Request, res: Response) => {
-//     const project = await fetchProject(req.params.projectId)
-
-//     res.format({
-//         html: renderSnippet(`edit-project-form/${req.query.tab}`, { project, req }, res),
-//     })
-// })
-
-app.post("/api/projects/:projectId/settings", authenticate(), async (req: Request, res: Response) => {
+app.post("/projects/:projectId/settings/:tab", authenticate(), async (req: Request, res: Response) => {
 
     const formParser = formidable({
         multiples: true,
     })
 
     const [fields, files] = await formParser.parse(req)
+    console.log(fields, Object.keys(files))
 
-    const tab = fields.tab![0]
-    const avatarMap = fields.avatarMap?.map((value: string) => value === "true")
-    const updates: any = _.mapValues(_.omit(fields, "tab", "avatarMap"), value => {
-        return Array.isArray(value) && value.length === 1 ? value[0] : value
-    })
+    const selectFirstInFields = (...fieldNames: string[]) => _.omitBy(
+        _.mapValues(
+            _.pick(fields, ...fieldNames),
+            value => Array.isArray(value) ? value[0] : value
+        ),
+        _.isNil
+    )
 
-    const encodeImage = async (file: File) => {
-        const fileBuffer = await Bun.file(file.filepath).arrayBuffer()
+    switch (req.params.tab) {
+        case SettingsTabs.General:
+            await updateProject(req.params.projectId, {
+                ...selectFirstInFields("name", "colors.primary"),
+                onlyShowLogo: Boolean(fields.onlyShowLogo),
+                ...files.logo && {
+                    logo: await encodeImage(files.logo[0]),
+                },
+            })
+            break
+        case SettingsTabs.Theme: break
+        case SettingsTabs.Signups:
+            await updateProject(req.params.projectId, {
+                signupGoal: parseInt(fields.signupGoal?.toString() ?? "0"),
+                allowOverflowSignups: Boolean(fields.allowOverflowSignups),
+            })
+            break
+        case SettingsTabs.Hero:
+            await updateProject(req.params.projectId, selectFirstInFields(
+                "content.headline",
+                "content.description",
+                "content.eyebrow",
+            ))
+            break
+        case SettingsTabs.Features:
+            if (!fields["content.features"])
+                return res.sendStatus(400)
 
-        if (file.mimetype === "text/svg+xml") {
-            return await sharp(fileBuffer)
-                .resize({ height: 200, withoutEnlargement: true })
-                .toBuffer()
-                .then(buf => `data:text/svg+xml;base64, ${buf.toString("base64")}`)
-        }
+            await updateProject(req.params.projectId, {
+                "content.features": Object.fromEntries(
+                    fields["content.features"]!.map((value, i) => {
+                        const parsed = JSON.parse(value)
+                        parsed.order = i
+                        return [parsed.id, parsed]
+                    })
+                ),
+                "content.otherFeatures": fields["content.otherFeatures"]?.[0].split("\n")
+                    .map(line => line.trim()).filter(Boolean) ?? [],
+            })
+            break
+        case SettingsTabs.Benefits:
+            if (!fields["content.benefits"])
+                return res.sendStatus(400)
 
-        return await sharp(fileBuffer)
-            .resize({ height: 200, withoutEnlargement: true })
-            .webp()
-            .toBuffer()
-            .then(buf => `data:image/webp;base64, ${buf.toString("base64")}`)
+            await updateProject(req.params.projectId, {
+                "content.benefits": Object.fromEntries(
+                    fields["content.benefits"]!.map((value, i) => {
+                        const parsed = JSON.parse(value)
+                        parsed.order = i
+                        return [parsed.id, parsed]
+                    })
+                )
+            })
+            break
+        case SettingsTabs.Tweets:
+            await updateProject(req.params.projectId, {
+                "content.tweets": fields["content.tweets"]?.[0].split("\n")
+                    .map(line => line.trim()).filter(Boolean) ?? [],
+            })
+            break
+        case SettingsTabs.Team:
+
+            const includedIds = new Set(
+                Object.keys(fields)
+                    .map(key => key.match(/(?<=content\.team\.)\w+/)?.[0])
+                    .filter(Boolean)
+            )
+
+            const orderUpdates = Object.fromEntries(
+                [...includedIds].map((id, i) => [`content.team.${id}.order`, i])
+            )
+
+            const avatarUpdates = Object.fromEntries(
+                await Promise.all(
+                    [...includedIds]
+                        .map(id => `content.team.${id}.avatar`)
+                        .filter(avatarKey => avatarKey in files)
+                        .map(avatarKey => encodeImage(files[avatarKey]![0]).then(avatar => [avatarKey, avatar]))
+                )
+            )
+
+            const currentProject = await fetchProject(req.params.projectId, ["content.team"])
+            const currentIds = new Set(Object.keys(currentProject.content?.team || {}))
+            const deletions = Object.fromEntries(
+                [...currentIds].filter(id => !includedIds.has(id))
+                    .map(id => [`content.team.${id}`, undefined])
+            )
+
+            await updateProject(req.params.projectId, {
+                ...selectFirstInFields(
+                    ...Object.keys(fields)
+                        .filter(key => /\.(?:name|title|twitter|linkedin)$/.test(key))
+                ),
+                ..._.mapValues(
+                    selectFirstInFields(
+                        ...Object.keys(fields)
+                            .filter(key => key.endsWith(".badges"))
+                    ),
+                    (value: string) => value.split("\n").map(line => line.trim()).filter(Boolean)
+                ),
+                ...orderUpdates,
+                ...avatarUpdates,
+                ...deletions,
+            })
+            break
+        default:
+            return res.sendStatus(404)
     }
-
-    if (files.logo) {
-        updates.logo = await encodeImage(files.logo[0])
-    }
-
-    const cleanJsonList = (key: string) => {
-        if (!updates[key])
-            return
-
-        const clean = (item: string) => JSON.parse(item)
-
-        if (Array.isArray(updates[key]))
-            updates[key] = updates[key].map(clean)
-
-        else if (typeof updates[key] === "string")
-            updates[key] = [clean(updates[key])]
-    }
-
-    ["content.features", "content.team", "content.benefits"].forEach(cleanJsonList)
-
-    const splitMultiline = (value: any) => {
-        if (!value || typeof value !== "string")
-            return value
-
-        return (value as string).split("\n")
-            .map(line => line.trim())
-            .filter(Boolean)
-    }
-
-    ["content.otherFeatures", "content.tweets"].forEach(key => {
-        if (updates[key])
-            updates[key] = splitMultiline(updates[key])
-    })
-
-    if (updates["content.team"]) {
-        (updates["content.team"] as any[]).forEach((teamMember: any) => {
-            teamMember.badges = splitMultiline(teamMember.badges)
-        })
-    }
-
-    if (files.avatar && tab === "team") {
-        const encodedAvatars = await Promise.all(files.avatar.map(encodeImage))
-
-        avatarMap!.forEach((isAvatarIncluded, i) => {
-            if (isAvatarIncluded)
-                updates["content.team"][i].avatar = encodedAvatars.shift()
-        })
-    }
-
-    ["onlyShowLogo", "allowOverflowSignups"].forEach(key => {
-        updates[key] = Boolean(updates[key])
-    })
-
-    await updateProject(req.params.projectId, updates)
 
     res.sendStatus(204)
 })
@@ -178,7 +221,15 @@ app.get(
 
 // Pages requiring authentication
 app.get("/projects", authenticate(), renderPage())
-app.get("/projects/:projectId/settings/:tab", authenticate(), renderPage("edit-project"))
+app.get(
+    "/projects/:projectId/settings/:tab",
+    authenticate(),
+    (req: Request, res: Response, next: NextFunction) => {
+        const { success } = z.nativeEnum(SettingsTabs).safeParse(req.params.tab)
+        success ? next() : res.sendStatus(404)
+    },
+    renderPage("edit-project")
+)
 
 // Pages not requiring authentication
 app.get("/login", requireNotLoggedIn, renderPage())

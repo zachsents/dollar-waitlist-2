@@ -1,62 +1,59 @@
-import { alpineJsonStringify } from "../server-modules/util"
+import { alpineJsonStringify, cgen, randomId } from "../server-modules/util"
 import Button from "./button"
-import Input, { type InputProps } from "./input"
+import { type InputProps } from "./input"
 
-export default function ImageInput({ label, value, ...props }: ImageInputProps) {
+export default function ImageInput({ label, nestInLabel, labelProps, value, class: _class, ...props }: ImageInputProps) {
 
-    return (
-        <div x-data={alpineJsonStringify({ 
-            inputValue: "",
-        })}>
-            <Input
-                label={<>
-                    <span class="w-36">{label}</span>
+    props.id ??= randomId(props.name || "imageInput")
 
-                    <div class="flex flex-col items-center gap-2">
-                        <span x-show="inputValue" class="text-sm text-gray-500">
-                            Selected{" "}
-                            <span
-                                x-text="inputValue?.split('\\\\').pop() || 'Image selected'"
-                            />
-                        </span>
+    const clickInput = "$('input', this.parentElement).click()"
 
-                        {value ?
-                            <>
-                                <img
-                                    src={value} class="max-h-20 rounded-lg cursor-pointer hover:opacity-50 transition-opacity"
-                                    x-show="!inputValue"
-                                />
-                                <Button
-                                    color="green"
-                                    type="button"
-                                    onclick="this.parentElement.click()"
-                                    class="text-xs"
-                                >
-                                    Change Image
-                                </Button>
-                            </> :
-                            <Button
-                                color="green"
-                                type="button"
-                                onclick="this.parentElement.click()"
-                                class="text-sm"
-                            >
-                                Upload Image
-                            </Button>}
-                    </div>
-                </>}
-                type="file"
-                accept="image/*"
+    const inputComponent =
+        <div
+            x-data={alpineJsonStringify({ imageSource: value })}
+            class={cgen("flex flex-col items-center gap-2", _class)}
+        >
+            <img
+                x-show="imageSource"
+                x-bind:src="imageSource"
+                onclick={clickInput}
+                class="max-h-24 rounded-lg cursor-pointer border hover:opacity-50 transition-opacity"
+            />
+
+            <Button
+                color="green" type="button" 
+                onclick={clickInput}
+                class="text-xs"
+            >
+                <span x-text="imageSource ? 'Change Image' : 'Upload Image'" />
+            </Button>
+
+            <input
                 {...props}
-                class={`hidden ${props.class || ""}`}
-
-                x-model="inputValue"
+                type="file" accept="image/*" hidden
+                x-on:change="imageSource = URL.createObjectURL($el.files[0])"
             />
         </div>
-    )
+
+    return label ?
+        nestInLabel ?
+            <label for={props.id as string} {...labelProps}>
+                <div>{label}</div>
+                {inputComponent}
+            </label> :
+            <>
+                <label for={props.id as string} {...labelProps}>
+                    {label}
+                </label>
+                {inputComponent}
+            </> :
+        inputComponent
 }
 
 type ImageInputProps = {
     label: string
+    nestInLabel?: boolean
+    labelProps?: JSX.IntrinsicElements["label"]
     value?: string
+    class?: string
 } & Omit<InputProps, "label" | "type" | "value">

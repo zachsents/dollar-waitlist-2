@@ -1,21 +1,30 @@
+import { fetchProject } from "../../server-modules/firebase"
 import type { SettingsProps } from "../../server-modules/util"
 import Button from "../button"
-import SettingsContainer from "../settings-container"
 import TeamInput from "../team-input"
 
 
-export default function TeamSettings({ project, req }: SettingsProps) {
+async function TeamSettings({ projectId }: SettingsProps) {
+    const project = await fetchProject(projectId, ["content.team"])
+
+    const sortedTeam = Object.entries(project.content?.team || {})
+        .map(([key, value]) => ({
+            ...value,
+            id: key,
+        }))
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
 
     const addNewInput = `
-        const newInput = $('#team-input-template > *').cloneNode(true);
-        this.previousElementSibling.appendChild(newInput);
+        const fragClone = $('#team-input-template').content.cloneNode(true);
+        const newInput = fragClone.childNodes[0];
+        this.previousElementSibling.appendChild(fragClone);
         newInput.scrollIntoView({ behavior: "smooth" });
     `
 
     return (
-        <SettingsContainer title="Team" req={req}>
+        <>
             <div class="flex flex-col gap-8">
-                {project.content?.team?.map(team =>
+                {sortedTeam.map(team =>
                     <TeamInput {...team} />
                 )}
             </div>
@@ -24,14 +33,17 @@ export default function TeamSettings({ project, req }: SettingsProps) {
                 color="green"
                 leftIcon="plus"
                 type="button"
+                class="text-sm"
                 onclick={addNewInput.trim()}
             >
                 Add Team Member
             </Button>
 
-            <div id="team-input-template" class="hidden">
+            <template id="team-input-template">
                 <TeamInput />
-            </div>
-        </SettingsContainer>
+            </template>
+        </>
     )
 }
+
+export default TeamSettings

@@ -13,7 +13,7 @@ export default function LoginPage({ req }: PageProps) {
     return (
         <PageShell bodyClass="bg-gray-100">
             <div class="w-screen h-screen flex justify-center items-center">
-                <div class="bg-white border shadow-md rounded-lg p-10 flex flex-col items-stretch gap-4">
+                <div class="bg-white border shadow-md rounded-xl p-10 flex flex-col items-stretch gap-4">
                     <h1 class="font-bold text-lg text-center">
                         Login to Dollar Waitlist
                     </h1>

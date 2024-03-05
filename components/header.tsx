@@ -4,7 +4,7 @@ import Menu from "../components/menu"
 
 export default function Header() {
     return (
-        <header class="px-8 py-4">
+        <header id="header" hx-preserve class="px-8 py-4">
             <nav class="flex gap-4 justify-between items-center">
                 <div class="flex gap-8 items-center justify-start">
                     <a href="/" class="flex gap-2 items-center text-lg group">

@@ -34,7 +34,7 @@ export default function Button({ children, color, leftSection, leftIcon, rightSe
 }
 
 export type ButtonProps = {
-    children: JSX.Element | string
+    children: string | string[] | JSX.Element | JSX.Element[]
     color: string
     leftSection?: JSX.Element
     leftIcon?: string

@@ -1,61 +1,102 @@
-import { alpineJsonStringify } from "../server-modules/util"
+import { alpineJsonStringify, cc, cgen } from "../server-modules/util"
+import Button from "./button"
 import ImageInput from "./image-input"
 import Input from "./input"
 import TablerIcon from "./tabler-icon"
 
-export default function TeamInput({ name, avatar, title, badges, linkedin, twitter }: TeamInputProps) {
+export default function TeamInput({ id, name, avatar, title, badges, linkedin, twitter }: TeamInputProps) {
 
+    const remove = `
+        const form = this.closest('form');
+        this.closest('.${cc(TeamInput)}').remove();
+        htmx.trigger(form, 'change');
+    `
+    const moveUp = `
+        const self = this.closest('.${cc(TeamInput)}');
+        if(!self.previousElementSibling) return;
+        self.parentNode.insertBefore(self, self.previousElementSibling);
+        htmx.trigger(this.closest('form'), 'change');
+    `
+    const moveDown = `
+        const self = this.closest('.${cc(TeamInput)}');
+        if(!self.nextElementSibling) return;
+        self.parentNode.insertBefore(self.nextElementSibling, self);
+        htmx.trigger(this.closest('form'), 'change');
+    `
+    
     return (
         <div
-            class="component-team-input flex flex-col gap-1 items-stretch"
+            class={cgen(TeamInput, "grid grid-cols-[10rem_auto] gap-2 items-center")}
             x-data={alpineJsonStringify({ 
-                name, title, linkedin, twitter,
-                badges: badges?.join?.("\n"),
+                id: id || "js:randomId('team', false)", 
             })}
         >
-            <div class="flex items-center gap-4">
-                <button
-                    class="opacity-50 hover:opacity-100 hover:text-red-500"
-                    onclick="this.closest('.component-benefit-input').remove()"
-                >
-                    <TablerIcon name="x" />
-                </button>
+            <div class="flex justify-between items-center gap-4 col-span-full">
                 <p class="font-bold">Team Member</p>
+                <div class="flex items-center gap-1 text-xs opacity-50">
+                    <Button
+                        color="gray"
+                        onclick={moveDown.trim()}
+                    >
+                        <TablerIcon name="arrow-down" />
+                    </Button>
+                    <Button
+                        color="gray"
+                        onclick={moveUp.trim()}
+                    >
+                        <TablerIcon name="arrow-up" />
+                    </Button>
+                    <Button
+                        color="red"
+                        onclick={remove.trim()}
+                    >
+                        <TablerIcon name="x" />
+                    </Button>
+                </div>
             </div>
 
             <Input
                 label="Name"
                 type="text"
                 placeholder="Mark Zuckerberg"
-                x-model="name"
+                x-bind:name="`content.team.${id}.name`"
+                value={name}
+                nestInLabel={false}
             />
 
             <Input
                 label="Title"
                 type="text"
                 placeholder="CEO, Co-Founder, etc."
-                x-model="title"
+                x-bind:name="`content.team.${id}.title`" 
+                value={title}
+                nestInLabel={false}
             />
 
             <Input
                 label="Twitter URL"
                 textarea rows="1"
                 placeholder="https://twitter.com/username"
-                x-model="twitter"
+                x-bind:name="`content.team.${id}.twitter`" 
+                value={twitter}
+                nestInLabel={false}
             />
 
             <Input
                 label="LinkedIn URL"
-                textarea rows="1"
+                type="text"
                 placeholder="https://linkedin.com/in/username"
-                x-model="linkedin"
+                x-bind:name="`content.team.${id}.linkedin`" 
+                value={linkedin}
+                nestInLabel={false}
             />
 
             <ImageInput
                 label="Avatar"
-                name="avatar"
+                x-bind:name="`content.team.${id}.avatar`" 
                 value={avatar}
-                class="team-input-avatar"
+                nestInLabel={false}
+                class="justify-self-start"
             />
 
             <Input
@@ -63,19 +104,16 @@ export default function TeamInput({ name, avatar, title, badges, linkedin, twitt
                 description="Badges displayed under the team member's name. Each line will be a new badge."
                 textarea rows="3"
                 placeholder="Badges"
-                x-model="badges"
-            />
-
-            <input 
-                hidden 
-                x-bind:name="Boolean(name || title || badges || linkedin || twitter) && 'content.team'"
-                x-bind:value="JSON.stringify({ name, title, linkedin, twitter, badges })"
+                x-bind:name="`content.team.${id}.badges`"
+                value={badges?.join("\n") || ""}
+                nestInLabel={false}
             />
         </div>
     )
 }
 
 type TeamInputProps = {
+    id?: string
     name?: string
     title?: string
     badges?: string[]

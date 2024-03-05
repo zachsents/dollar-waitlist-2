@@ -5,15 +5,18 @@ import CopyButton from "../components/copy-button"
 import Footer from "../components/footer"
 import Header from "../components/header"
 import PageShell from "../components/page-shell"
+import SettingsContainer from "../components/settings-container"
 import Tabs from "../components/tabs"
 import { fetchProject } from "../server-modules/firebase"
-import type { PageProps } from "../server-modules/util"
+import { settingsTabLabels, type PageProps, SettingsTabs } from "../server-modules/util"
 
 
 export default async function EditProjectPage({ req }: PageProps) {
 
-    const tab = req.params.tab
-    const project = await fetchProject(req.params.projectId)
+    const currentTab = req.params.tab as SettingsTabs
+    const project = await fetchProject(req.params.projectId, ["name"])
+
+    const SettingsComponent = require(`../components/edit-project-form/${currentTab}`).default
 
     return (
         <PageShell bodyClass="bg-gray-100 pb-40">
@@ -26,14 +29,22 @@ export default async function EditProjectPage({ req }: PageProps) {
                         <Anchor href="/">
                             Projects
                         </Anchor>,
-                        <Anchor href={`/projects/${project.id}/edit`}>
+                        <Anchor href={`/projects/${project.id}/settings`}>
                             {project.name}
+                        </Anchor>,
+                        <Anchor href={`/projects/${project.id}/settings/${currentTab}`}>
+                            {settingsTabLabels[currentTab]}
                         </Anchor>,
                     ]}
                 />
 
                 <div class="flex items-center gap-8">
-                    <h1 id="project-title" class="text-3xl font-bold">
+                    <h1
+                        id="project-title"
+                        class="text-3xl font-bold"
+                        hx-get={`/api/projects/${req.params.projectId}/name`}
+                        hx-trigger="change"
+                    >
                         {project.name}
                     </h1>
 
@@ -57,18 +68,20 @@ export default async function EditProjectPage({ req }: PageProps) {
                 <hr />
 
                 <Tabs
-                    tabs={[
-                        { value: "general", content: "General" },
-                        { value: "theme", content: "Theme" },
-                        { value: "signups", content: "Signups" },
-                        { value: "main-content", content: "Hero" },
-                        { value: "features", content: "Features" },
-                        { value: "benefits", content: "Benefits" },
-                        { value: "tweets", content: "Tweets" },
-                        { value: "team", content: "Team" },
-                    ]}
-                    hx-get={`/api/projects/${project.id}/settings`}
-                />
+                    tabs={Object.values(SettingsTabs).map(tab =>
+                        <Tabs.Tab
+                            href={`/projects/${project.id}/settings/${tab}`}
+                            value={tab}
+                        >
+                            {settingsTabLabels[tab]}
+                        </Tabs.Tab>
+                    )}
+                    currentTab={currentTab}
+                >
+                    <SettingsContainer title={settingsTabLabels[currentTab]} >
+                        <SettingsComponent projectId={project.id} />
+                    </SettingsContainer>
+                </Tabs>
             </div>
 
             <Footer />

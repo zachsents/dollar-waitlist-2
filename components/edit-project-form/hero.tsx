@@ -1,11 +1,24 @@
+import { fetchProject } from "../../server-modules/firebase"
 import type { SettingsProps } from "../../server-modules/util"
 import Input from "../input"
-import SettingsContainer from "../settings-container"
 
 
-export default function MainContentSettings({ project, req }: SettingsProps) {
+export default async function HeroSettings({ projectId }: SettingsProps) {
+
+    const project = await fetchProject(projectId, ["content.headline", "content.description", "content.eyebrow"])
+
     return (
-        <SettingsContainer title="Hero" req={req}>
+        <div class="grid grid-cols-[12rem_auto] gap-6 items-center">
+            <Input
+                label="Eyebrow"
+                description="A very short line above the headline in small text. Leave blank to not show."
+                name="content.eyebrow"
+                textarea
+                placeholder="Hey indie hackers!"
+                value={project.content?.eyebrow || ""}
+                nestInLabel={false}
+            />
+
             <Input
                 label="Headline"
                 description="A short, catchy headline for your project. This will be the h1 tag on your landing page."
@@ -13,6 +26,7 @@ export default function MainContentSettings({ project, req }: SettingsProps) {
                 textarea
                 placeholder="Something short and catchy!"
                 value={project.content?.headline || ""}
+                nestInLabel={false}
             />
 
             <Input
@@ -22,16 +36,8 @@ export default function MainContentSettings({ project, req }: SettingsProps) {
                 textarea rows="4"
                 placeholder="Describe what your project is about."
                 value={project.content?.description || ""}
+                nestInLabel={false}
             />
-
-            <Input
-                label="Eyebrow"
-                description="A very short line above the headline in small text. Leave blank to not show."
-                name="content.eyebrow"
-                textarea
-                placeholder="Hey indie hackers!"
-                value={project.content?.eyebrow || ""}
-            />
-        </SettingsContainer>
+        </div>
     )
 }

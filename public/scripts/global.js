@@ -11245,7 +11245,12 @@ var quickQuerySelector = function(selector, parent = document) {
 var quickQuerySelectorAll = function(selector, parent = document) {
   return Array.from(parent.querySelectorAll(selector));
 };
+var randomId = function(prefix, withDash = true) {
+  const rand = Math.random().toString(36).substring(2, 10);
+  return `${prefix ? withDash ? `${prefix}-` : prefix : ""}${rand}`;
+};
 window.onload = () => {
   window.$ = quickQuerySelector;
   window.$$ = quickQuerySelectorAll;
+  window.randomId = randomId;
 };

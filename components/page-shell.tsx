@@ -11,6 +11,8 @@ export default function PageShell({ children, title, afterBody, scriptName, body
                 <link rel="preconnect" href="https://fonts.googleapis.com" />
                 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="true" />
                 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet" />
+
+                <meta name="htmx-config" content='{"includeIndicatorStyles": false}' />
             </head>
 
             <body class={`dark:bg-neutral-900 min-h-screen relative ${bodyClass || ""}`}>

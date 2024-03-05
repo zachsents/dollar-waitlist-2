@@ -4,8 +4,8 @@ export default function Anchor({ class: classNames, children, ...props }: Anchor
         <a
             class={`component-anchor hover:text-green-600 data-[active]:text-green-600 ${classNames || ""}`}
             {...props}
-            x-data
-            x-bind:data-active={`window.location.pathname === "${props.href}"`}
+        // x-data
+        // x-bind:data-active={`window.location.pathname === "${props.href}"`}
         >
             {children}
         </a>

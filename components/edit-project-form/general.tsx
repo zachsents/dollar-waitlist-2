@@ -1,25 +1,38 @@
-import type { SettingsProps } from "../../server-modules/util"
+import { fetchProject } from "../../server-modules/firebase"
+import { alpineJsonStringify, type SettingsProps } from "../../server-modules/util"
 import ImageInput from "../image-input"
 import Input from "../input"
-import SettingsContainer from "../settings-container"
 
 
-export default function GeneralSettings({ project, req }: SettingsProps) {
+export default async function GeneralSettings({ projectId }: SettingsProps) {
+
+    const project = await fetchProject(projectId, ["name", "logo", "onlyShowLogo", "colors.primary"])
+
     return (
-        <SettingsContainer title="General" req={req}>
+        <div 
+            class="grid grid-cols-[12rem_auto] gap-6 items-center"
+            x-data={alpineJsonStringify({ primaryColor: project.colors?.primary || "#000000" })}
+        >
             <Input
                 label="Project Name"
-                description="This will be displayed to your users."
                 name="name"
                 type="text"
                 placeholder="Project Name"
                 value={project.name}
-
-                x-data
-                x-init="document.getElementById('project-title').textContent = $el.value"
+                nestInLabel={false}
             />
 
-            <ImageInput label="Logo" name="logo" value={project.logo} />
+            <hr class="col-span-2" />
+
+            <ImageInput
+                label="Logo"
+                name="logo"
+                value={project.logo}
+                nestInLabel={false}
+                class="justify-self-start"
+            />
+
+            <hr class="col-span-2" />
 
             <Input
                 label="Only show logo"
@@ -27,23 +40,27 @@ export default function GeneralSettings({ project, req }: SettingsProps) {
                 name="onlyShowLogo"
                 type="checkbox"
                 checked={project.onlyShowLogo}
+                class="justify-self-start h-6 aspect-square"
+                nestInLabel={false}
             />
 
-            <div 
-                class="flex items-center gap-4" 
-                x-data={JSON.stringify({ 
-                    color: project.colors?.primary || "#000000" 
-                })}
-            >
-                <Input
-                    label="Primary Color"
-                    name="colors.primary"
-                    type="text"
-                    x-model="color"
-                />
+            <hr class="col-span-2" />
 
-                <div class="w-8 aspect-square rounded-md" x-bind:style="{ backgroundColor: color }" />
-            </div>
-        </SettingsContainer>
+            <Input
+                label="Primary Color"
+                name="colors.primary"
+                type="text"
+                placeholder="#000000"
+                nestInLabel={false}
+                id="primaryColorInput"
+                
+                x-model="primaryColor"
+                afterInput={<label
+                    for="primaryColorInput" 
+                    class="w-8 aspect-square rounded-md" 
+                    x-bind:style="{ backgroundColor: primaryColor }"
+                />}
+            />
+        </div>
     )
 }
