@@ -1,8 +1,11 @@
 
 ✔ @today Add settings saving @done (3/2/2024, 11:15:32 PM)
 ☐ Add project creation
-☐ Port landing page renderer over from old version
-☐ Get stripe set up
+✔ Port landing page renderer over from old version @done (3/5/2024, 4:26:52 PM)
+✔ Get stripe set up @done (3/5/2024, 4:26:47 PM)
+✔ Make signups get logged in db @done (3/5/2024, 7:34:00 PM)
 ☐ Add section to view & export signups (+ maybe webhooks)
 ☐ Add section to view balance and request payout (just a button to send an email for now)
 ✔ Add image uploads @done (3/4/2024, 9:53:54 PM)
+✔ Add individual authentication to project settings page @done (3/5/2024, 8:18:05 PM)
+☐ Add now live, get started now option

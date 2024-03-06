@@ -9,12 +9,16 @@ import PageShell from "../components/page-shell"
 import TablerIcon from "../components/tabler-icon"
 import { generateProjectColorCSSVariables } from "../server-modules/colors"
 import { fetchProject } from "../server-modules/firebase"
-import { cgen, formatNumber, type PageProps, type Project, type ProjectBenefit, type ProjectFeature, type ProjectTeamMember } from "../server-modules/util"
+import { cgen, formatNumber, type AuthenticatedRequest, type PageProps, type Project, type ProjectBenefit, type ProjectFeature, type ProjectTeamMember } from "../server-modules/util"
+import Anchor from "../components/anchor"
 
 
 export default async function ViewWaitlistPage({ req }: PageProps) {
 
     const project = await fetchProject(req.params.projectId)
+
+    const user = (req as AuthenticatedRequest).currentUser
+    const isLoggedIn = !!user
 
     const links = <>
         <NavLink href="#features" class="py-0.5">Features</NavLink>
@@ -113,8 +117,6 @@ export default async function ViewWaitlistPage({ req }: PageProps) {
                 </div>
             </div>
 
-            {/* <div class="h-[200vh]" /> */}
-
             <Footer class="justify-center">
                 <p class="text-sm text-lighter">
                     This site was made with Dollar Waitlist 💸
@@ -122,6 +124,15 @@ export default async function ViewWaitlistPage({ req }: PageProps) {
                 <Footer.Link href="https://dollarwaitlist.com">Create your own</Footer.Link>
             </Footer>
 
+            {isLoggedIn &&
+                <div class="hidden lg:flex fixed z-50 bottom-0 right-4 rounded-t-md px-4 py-2 bg-white border-default items-center gap-4 text-sm shadow-md">
+                    <span class="text-light">
+                        Hey {user.name || user.email}! 👋
+                    </span>
+                    <Anchor href="/projects">
+                        Go to Dashboard
+                    </Anchor>
+                </div>}
         </PageShell>
     )
 }

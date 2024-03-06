@@ -51,7 +51,7 @@ export async function fetchProjectsForUser(userId: string) {
 
 
 export async function fetchProject(projectId: string, mask?: string[]) {
-    const document = await firestoreRequest(`/projects/${projectId}`, {
+    const document = await firestoreRequest(`projects/${projectId}`, {
         queryParams: mask ? {
             "mask.fieldPaths": mask
         } : {}
@@ -76,7 +76,7 @@ export async function updateProject(projectId: string, updates: Record<string, a
 
     const convertedUpdates = convertToFirestoreValue(nestedUpdates)
 
-    await firestoreRequest(`/projects/${projectId}`, {
+    await firestoreRequest(`projects/${projectId}`, {
         method: "PATCH",
         body: {
             fields: convertedUpdates.mapValue.fields,
@@ -88,13 +88,34 @@ export async function updateProject(projectId: string, updates: Record<string, a
 }
 
 
+export async function addSignup(projectId: string, email: string) {
+
+    const newDoc = convertToFirestoreValue({
+        email,
+        projectId,
+    })
+
+    const documentId = `${projectId}_${email}`.replaceAll(/\W+/g, "_")
+
+    await firestoreRequest(`signups`, {
+        method: "POST",
+        body: {
+            fields: newDoc.mapValue.fields,
+        },
+        queryParams: {
+            documentId,
+        }
+    })
+}
+
+
 async function firestoreRequest(path: string, {
     body,
     method = body ? "POST" : "GET",
     queryParams = {}
 }: FirestoreRequestOptions = {}) {
 
-    const url = new URL(`https://firestore.googleapis.com/v1/projects/${serviceAccount.project_id}/databases/(default)/documents${path}`)
+    const url = new URL(`https://firestore.googleapis.com/v1/${fullName(path)}`)
 
     Object.entries(queryParams).forEach(([key, val]) => {
         if (Array.isArray(val))
@@ -153,8 +174,20 @@ async function handleJsonResponse(res: Response) {
     if (res.ok)
         return res.json()
 
-    console.error(await res.json())
-    throw new Error(res.statusText)
+    const response = await res.json()
+    console.error(response.error)
+    throw new FirestoreError(response.error)
+}
+
+
+export class FirestoreError extends Error {
+    code: number
+    status: string
+    constructor(response: { code: number, message: string, status: string }) {
+        super(response.message)
+        this.code = response.code
+        this.status = response.status
+    }
 }
 
 
@@ -189,6 +222,12 @@ function cleanField(field: any, treatAsMap = false) {
     }
 
     return Object.values(field)[0]
+}
+
+
+function fullName(path?: string) {
+    const isVerb = path?.startsWith(":")
+    return `projects/${serviceAccount.project_id}/databases/(default)/documents${(isVerb || !path) ? "" : "/"}${path || ""}`
 }
 
 

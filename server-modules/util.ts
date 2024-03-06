@@ -4,6 +4,7 @@ import { fetchProject, type FormattedDocument } from "./firebase"
 import type { Fields, File, Files } from "formidable"
 import sharp from "sharp"
 import numeral from "numeral"
+import type { DecodedIdToken } from "firebase-admin/auth"
 
 export function evfn(fn: (event: Event, element: HTMLElement) => void): string {
     return `(${fn.toString()})(event, this)`
@@ -266,4 +267,9 @@ export function formatNumber(num: number) {
 export const stripeHeaders = {
     "Content-Type": "application/x-www-form-urlencoded",
     "Authorization": "Basic " + Buffer.from(`${process.env.STRIPE_API_KEY}:`).toString("base64"),
+}
+
+
+export interface AuthenticatedRequest extends Request {
+    currentUser: DecodedIdToken
 }
