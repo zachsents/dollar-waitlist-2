@@ -68,14 +68,17 @@ export default async function EditProjectPage({ req }: PageProps) {
                 <hr />
 
                 <Tabs
-                    tabs={Object.values(SettingsTabs).map(tab =>
-                        <Tabs.Tab
-                            href={`/projects/${project.id}/settings/${tab}`}
-                            value={tab}
-                        >
-                            {settingsTabLabels[tab]}
-                        </Tabs.Tab>
-                    )}
+                    tabs={<>
+                        {/* <span class="text-xs text-light">General</span> */}
+                        {Object.values(SettingsTabs).map(tab =>
+                            <Tabs.Tab
+                                href={`/projects/${project.id}/settings/${tab}`}
+                                value={tab}
+                            >
+                                {settingsTabLabels[tab]}
+                            </Tabs.Tab>
+                        )}
+                    </>}
                     currentTab={currentTab}
                 >
                     <SettingsContainer title={settingsTabLabels[currentTab]} >

@@ -10,7 +10,7 @@ import _, { trim } from "lodash"
 import morgan from "morgan"
 import path from "path"
 import { z } from "zod"
-import { FirestoreError, addSignup, admin, createProject, deleteProject, fetchProject, fetchProjectsForUser, updateProject } from "./server-modules/firebase"
+import { FirestoreError, addSignup, admin, createProject, deleteProject, exportSignups, fetchProject, fetchProjectsForUser, updateProject } from "./server-modules/firebase"
 import { SettingsTabs, createUpdatesForForm, encodeImage, stripeHeaders, type AuthenticatedRequest } from "./server-modules/util"
 
 
@@ -117,6 +117,7 @@ app.post("/projects/:projectId/settings/:tab", authenticate({ forProject: true }
                         parseInt(fields.signupGoal?.toString() ?? "0") :
                         null,
                     allowOverflowSignups: Boolean(fields.allowOverflowSignups?.[0]),
+                    webhookUrl: fields.webhookUrl?.[0] || null,
                 })
                 break
             case SettingsTabs.Hero:
@@ -258,8 +259,22 @@ app.get("/projects/:projectId/successfulsignup",
         const projectId = sessionData.metadata.projectId
         const email = sessionData.customer_details?.email || sessionData.customer_email
 
-        try {
+        addingSignup: try {
             await addSignup(projectId, email)
+
+            const project = await fetchProject(projectId, ["webhookUrl"])
+            if (!project.webhookUrl)
+                break addingSignup  // fun little syntax
+
+            // potentially unsafe for serverless but i don't want
+            // to wait for some random server to respond
+            fetch(project.webhookUrl, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, projectId }),
+            })
         }
         catch (err) {
             if (!(err instanceof FirestoreError && err.code == 409)) {
@@ -270,6 +285,31 @@ app.get("/projects/:projectId/successfulsignup",
         }
 
         res.send(`<script>window.onload = () => { localStorage.setItem("dwsignup-${projectId}", "${email}"); window.location.href = "/projects/${projectId}" }</script>`)
+    }
+)
+
+app.get("/projects/:projectId/signups", authenticate({ forProject: true }),
+    async (req: Request, res: Response) => {
+
+        const { success, data: mode }: any = z.enum(["json", "csv"])
+            .default("json")
+            .safeParse(req.query.format)
+
+        if (!success)
+            return res.sendStatus(400)
+
+        if (mode === "json")
+            res.header("Content-Type", "application/json")
+        else if (mode === "csv")
+            res.header("Content-Type", "text/csv")
+
+        if ("download" in req.query)
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename="signups-${req.params.projectId}.${mode}"`
+            )
+
+        res.send(await exportSignups(req.params.projectId, mode))
     }
 )
 

@@ -4,10 +4,10 @@
 ✔ Port landing page renderer over from old version @done (3/5/2024, 4:26:52 PM)
 ✔ Get stripe set up @done (3/5/2024, 4:26:47 PM)
 ✔ Make signups get logged in db @done (3/5/2024, 7:34:00 PM)
-☐ Add section to view & export signups (+ maybe webhooks)
+✔ Add section to view & export signups (+ maybe webhooks) @done (3/6/2024, 1:31:10 AM)
 ☐ Add section to view balance and request payout (just a button to send an email for now)
 ✔ Add image uploads @done (3/4/2024, 9:53:54 PM)
 ✔ Add individual authentication to project settings page @done (3/5/2024, 8:18:05 PM)
 ☐ Add now live, get started now option
 ✔ Project deletion @done (3/5/2024, 9:23:14 PM)
-☐ Hunt down other mutation bug
+✘ Hunt down other mutation bug @cancelled (3/6/2024, 12:01:58 AM)

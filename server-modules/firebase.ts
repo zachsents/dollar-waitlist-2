@@ -3,6 +3,8 @@ import { GoogleAuth } from "google-auth-library"
 import serviceAccount from "../service-account.json"
 import type { Project } from "./util"
 import _ from "lodash"
+import Papa from "papaparse"
+
 
 const app = admin.initializeApp({
     credential: admin.credential.cert(serviceAccount as ServiceAccount)
@@ -97,7 +99,7 @@ export async function addSignup(projectId: string, email: string) {
 
     const documentId = `${projectId}_${email}`.replaceAll(/\W+/g, "_")
 
-    await firestoreRequest(`signups`, {
+    await firestoreRequest("signups", {
         method: "POST",
         body: {
             fields: newDoc.mapValue.fields,
@@ -106,6 +108,68 @@ export async function addSignup(projectId: string, email: string) {
             documentId,
         }
     })
+}
+
+export async function fetchSignupCount(projectId: string) {
+    const data = await firestoreRequest(":runAggregationQuery", {
+        body: {
+            structuredAggregationQuery: {
+                aggregations: [{
+                    count: {},
+                }],
+                structuredQuery: {
+                    from: [{
+                        collectionId: "signups"
+                    }],
+                    where: {
+                        fieldFilter: {
+                            field: { fieldPath: "projectId" },
+                            op: "EQUAL",
+                            value: { stringValue: projectId },
+                        }
+                    }
+                }
+            }
+        }
+    })
+
+    return data[0].result.aggregateFields.field_1.integerValue
+}
+
+export async function exportSignups(projectId: string, mode?: "csv" | "json" | "js") {
+
+    const data: Snapshot[] = await firestoreRequest(":runQuery", {
+        body: {
+            structuredQuery: {
+                from: [{
+                    collectionId: "signups"
+                }],
+                where: {
+                    fieldFilter: {
+                        field: { fieldPath: "projectId" },
+                        op: "EQUAL",
+                        value: { stringValue: projectId },
+                    }
+                },
+            }
+        }
+    })
+
+    const formattedData = data
+        .filter(snap => snap.document)
+        .map(snap => ({
+            email: snap.document!.fields.email.stringValue,
+            create_time: snap.document!.createTime,
+        }))
+
+    if (mode === "js")
+        return formattedData
+
+    if (mode === "json")
+        return JSON.stringify(formattedData)
+
+    if (mode === "csv")
+        return Papa.unparse(formattedData)
 }
 
 
