@@ -2,6 +2,7 @@ import LoadingSpinner from "../components/loading-spinner"
 import Footer from "../components/footer"
 import Header from "../components/header"
 import PageShell from "../components/page-shell"
+import Button from "../components/button"
 
 
 export default function IndexPage() {
@@ -10,9 +11,20 @@ export default function IndexPage() {
             <Header />
 
             <div class="px-8 max-w-5xl mx-auto flex flex-col gap-8 items-stretch">
-                <h1 class="text-3xl font-bold">
-                    Projects
-                </h1>
+                <div class="flex items-center justify-between">
+                    <h1 class="text-3xl font-bold">
+                        Projects
+                    </h1>
+
+                    <Button
+                        color="green" leftIcon="plus"
+                        hx-post="#"
+                        hx-prompt="Name your new project (you can change this later)"
+                        htmx="parent"
+                    >
+                        New Project
+                    </Button>
+                </div>
 
                 <LoadingSpinner
                     htmx="self"

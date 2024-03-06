@@ -109,11 +109,42 @@ export async function addSignup(projectId: string, email: string) {
 }
 
 
+export async function createProject(name: string, owner: string) {
+
+    const newDocData = convertToFirestoreValue({
+        owner,
+        name,
+        colors: {
+            primary: "#000000",
+        },
+    })
+
+    const newDoc = await firestoreRequest(`projects`, {
+        method: "POST",
+        body: {
+            fields: newDocData.mapValue.fields,
+        },
+    })
+
+    const { id } = formatDocument(newDoc as Document)
+    return id
+}
+
+
+export async function deleteProject(projectId: string) {
+    await firestoreRequest(`projects/${projectId}`, {
+        method: "DELETE",
+    })
+}
+
+
 async function firestoreRequest(path: string, {
     body,
     method = body ? "POST" : "GET",
     queryParams = {}
 }: FirestoreRequestOptions = {}) {
+
+    console.log("Firestore Request:", method, fullName(path), queryParams, body)
 
     const url = new URL(`https://firestore.googleapis.com/v1/${fullName(path)}`)
 

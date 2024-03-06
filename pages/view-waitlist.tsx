@@ -27,11 +27,14 @@ export default async function ViewWaitlistPage({ req }: PageProps) {
         <NavLink href="#team" class="py-0.5">Team</NavLink>
     </>
 
+    const projectColors = project.colors?.primary ?
+        generateProjectColorCSSVariables(project.colors.primary) :
+        {}
+
     return (
         <PageShell
             class="bg-gray-50 lg:glowy-bg pb-40"
-            style={project.colors?.primary &&
-                generateProjectColorCSSVariables(project.colors.primary) as any}
+            style={projectColors}
             afterBody={twitterScript.trim()}
         >
             <header class="fixed z-30 top-0 left-0 w-full px-8 py-4">
@@ -55,38 +58,43 @@ export default async function ViewWaitlistPage({ req }: PageProps) {
                     <div class="py-20 flex-1">
                         <Stack class="gap-36 w-full">
                             <Stack class="mt-20 lg:mt-24 gap-4">
-                                <p class="font-bold text-[var(--wl-primary-dark)]">
-                                    {project.content.eyebrow}
-                                </p>
-                                <h1 class="font-bold text-5xl">
-                                    {project.content.headline}
-                                </h1>
-                                <p class="text-xl">
-                                    {project.content.description}
-                                </p>
+                                {project.content?.eyebrow &&
+                                    <p class="font-bold text-[var(--wl-primary-dark)]">
+                                        {project.content.eyebrow}
+                                    </p>}
+                                {project.content?.headline &&
+                                    <h1 class="font-bold text-5xl">
+                                        {project.content.headline}
+                                    </h1>}
+                                {project.content?.description &&
+                                    <p class="text-xl">
+                                        {project.content.description}
+                                    </p>}
                             </Stack>
 
-                            <Stack class="gap-10 scroll-m-20" id="features">
-                                <SectionLabel label="Features" />
-                                <div class="columns-1 lg:columns-2 max-w-3xl mx-auto gap-8">
-                                    {Object.values(project.content.features)
-                                        .sort((a, b) => a.order - b.order)
-                                        .map(feature =>
-                                            <Feature feature={feature} />
-                                        )}
-                                </div>
-                            </Stack>
+                            {project.content?.features &&
+                                <Stack class="gap-10 scroll-m-20" id="features">
+                                    <SectionLabel label="Features" />
+                                    <div class="columns-1 lg:columns-2 max-w-3xl mx-auto gap-8">
+                                        {Object.values(project.content.features)
+                                            .sort((a, b) => a.order - b.order)
+                                            .map(feature =>
+                                                <Feature feature={feature} />
+                                            )}
+                                    </div>
+                                </Stack>}
 
-                            <Stack class="gap-10 scroll-m-20" id="benefits">
-                                <SectionLabel label="Benefits" />
-                                <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-16">
-                                    {Object.values(project.content.benefits)
-                                        .sort((a, b) => a.order - b.order)
-                                        .map(benefit =>
-                                            <Benefit benefit={benefit} />
-                                        )}
-                                </div>
-                            </Stack>
+                            {project.content?.benefits &&
+                                <Stack class="gap-10 scroll-m-20" id="benefits">
+                                    <SectionLabel label="Benefits" />
+                                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-16">
+                                        {Object.values(project.content.benefits)
+                                            .sort((a, b) => a.order - b.order)
+                                            .map(benefit =>
+                                                <Benefit benefit={benefit} />
+                                            )}
+                                    </div>
+                                </Stack>}
 
                             {project.content?.tweets?.length > 0 &&
                                 <Stack class="gap-10 scroll-m-20" id="tweets">
@@ -98,17 +106,17 @@ export default async function ViewWaitlistPage({ req }: PageProps) {
                                     </div>
                                 </Stack>}
 
-                            <Stack class="gap-10 scroll-m-20" id="team">
-                                <SectionLabel label="Team" />
-                                <div class="grid grid-cols-1 gap-10">
-                                    {Object.values(project.content.team)
-                                        .sort((a, b) => a.order - b.order)
-                                        .map(member =>
-                                            <TeamMemberCard member={member} />
-                                        )}
-                                </div>
-                            </Stack>
-
+                            {project.content?.team &&
+                                <Stack class="gap-10 scroll-m-20" id="team">
+                                    <SectionLabel label="Team" />
+                                    <div class="grid grid-cols-1 gap-10">
+                                        {Object.values(project.content.team)
+                                            .sort((a, b) => a.order - b.order)
+                                            .map(member =>
+                                                <TeamMemberCard member={member} />
+                                            )}
+                                    </div>
+                                </Stack>}
                             <hr />
                         </Stack>
                     </div>

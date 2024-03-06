@@ -16,11 +16,11 @@ export default async function SignupsSettings({ projectId }: SettingsProps) {
         >
             <Input
                 label="Signup Goal"
-                description="The number of signups you want to reach."
+                description="The number of signups you want to reach. Leave blank to remove the goal."
                 name="signupGoal"
                 type="number"
                 placeholder="0"
-                value={project.si?.toString() || "0"}
+                value={project.signupGoal?.toString() || ""}
                 nestInLabel={false}
                 class="justify-self-start"
             />

@@ -6,11 +6,11 @@ import cookieParser from "cookie-parser"
 import express, { type NextFunction, type Request, type Response } from "express"
 import type { DecodedIdToken } from "firebase-admin/auth"
 import formidable from "formidable"
-import _ from "lodash"
+import _, { trim } from "lodash"
 import morgan from "morgan"
 import path from "path"
 import { z } from "zod"
-import { FirestoreError, addSignup, admin, fetchProject, fetchProjectsForUser, updateProject } from "./server-modules/firebase"
+import { FirestoreError, addSignup, admin, createProject, deleteProject, fetchProject, fetchProjectsForUser, updateProject } from "./server-modules/firebase"
 import { SettingsTabs, createUpdatesForForm, encodeImage, stripeHeaders, type AuthenticatedRequest } from "./server-modules/util"
 
 
@@ -184,6 +184,27 @@ app.post("/projects/:projectId/settings/:tab", authenticate({ forProject: true }
     }
 )
 
+app.post("/projects", authenticate(),
+    async (req: Request, res: Response) => {
+
+        const projectName = req.header("HX-Prompt")?.trim()
+        if (!projectName)
+            return res.sendStatus(400)
+
+        const projectId = await createProject(projectName, (req as AuthenticatedRequest).currentUser.uid)
+        res.header("HX-Redirect", `/projects/${projectId}/settings`)
+        res.sendStatus(204)
+    }
+)
+
+app.delete("/projects/:projectId", authenticate({ forProject: true }),
+    async (req: Request, res: Response) => {
+        await deleteProject(req.params.projectId)
+        res.header("HX-Redirect", `/projects`)
+        res.sendStatus(204)
+    }
+)
+
 
 /* -------------------------------------------------------------------------- */
 /*                               Project Signups                              */
@@ -343,7 +364,7 @@ function renderPage(pagePath?: string) {
         console.debug(`Rendering page: /${pagePath}`)
 
         const pageHtml = await renderToString(rid => Html.createElement(page, {
-            rid, req
+            rid, req, res
         }))
 
         res.send(pageHtml)
@@ -380,10 +401,8 @@ function authenticate({
             return res.sendStatus(403)
 
         if (forProject) {
-            if (forProject === true)
-                forProject = req.params.projectId
-
-            const project = await fetchProject(forProject, ["owner"])
+            const projectId = typeof forProject === "string" ? forProject : req.params.projectId
+            const project = await fetchProject(projectId, ["owner"])
             if (project.owner !== claims.uid)
                 return res.sendStatus(403)
         }
@@ -398,7 +417,7 @@ type AuthenticateMiddlewareOptions = {
     optional?: boolean
     redirectTo?: string
     asUser?: string
-    forProject?: string | true
+    forProject?: boolean | string
 }
 
 

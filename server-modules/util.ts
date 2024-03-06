@@ -1,4 +1,4 @@
-import type { Request } from "express"
+import type { Request, Response } from "express"
 import _ from "lodash"
 import { fetchProject, type FormattedDocument } from "./firebase"
 import type { Fields, File, Files } from "formidable"
@@ -18,6 +18,7 @@ export function randomId(prefix?: string, withDash = true) {
 export type PageProps = {
     rid: string
     req: Request
+    res: Response
 }
 
 
