@@ -23,7 +23,7 @@ export default function TeamInput({ id, name, avatar, title, badges, linkedin, t
         self.parentNode.insertBefore(self.nextElementSibling, self);
         htmx.trigger(this.closest('form'), 'change');
     `
-    
+
     return (
         <div
             class={cgen(TeamInput, "grid grid-cols-[10rem_auto] gap-2 items-center")}

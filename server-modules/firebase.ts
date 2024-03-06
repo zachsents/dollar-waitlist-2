@@ -79,6 +79,9 @@ export async function updateProject(projectId: string, updates: Record<string, a
 
     const convertedUpdates = convertToFirestoreValue(nestedUpdates)
 
+    console.debug("Converted updates", JSON.stringify(convertedUpdates, null, 2))
+    console.debug("Masks", updateMaskFields)
+
     await firestoreRequest(`projects/${projectId}`, {
         method: "PATCH",
         body: {

@@ -7,7 +7,7 @@ import Input from "../input"
 
 export default async function GeneralSettings({ projectId }: SettingsProps) {
 
-    const project = await fetchProject(projectId, ["name", "logo", "onlyShowLogo", "colors.primary"])
+    const project = await fetchProject(projectId, ["name", "logo", "onlyShowLogo", "colors.primary", "liveSiteUrl"])
 
     return (
         <div

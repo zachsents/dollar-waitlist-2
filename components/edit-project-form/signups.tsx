@@ -6,7 +6,7 @@ import Input from "../input"
 
 export default async function SignupsSettings({ projectId }: SettingsProps) {
 
-    const project = await fetchProject(projectId, ["signupGoal", "allowOverflowSignups"])
+    const project = await fetchProject(projectId, ["signupGoal", "allowOverflowSignups", "webhookUrl"])
 
     const signupCount = await fetchSignupCount(projectId)
 
