@@ -382,9 +382,13 @@ function JoinCard({ project }: { project: Project }) {
         </div>
 
         <Center
-            class="lg:hidden fixed left-0 top-0 w-screen h-screen z-[100] pointer-events-none px-xl"
-            x-data="{ open: false }"
+            class="lg:hidden fixed left-0 top-0 w-screen h-screen z-[100] pointer-events-none px-xl transition-opacity"
+            x-data="{ open: false, atBottom: false }"
             x-cloak
+            {...{
+                "@scroll.window": "atBottom = Math.abs(document.documentElement.scrollTop - document.documentElement.scrollTopMax) < 100",
+                "x-bind:class": "{ 'opacity-0': atBottom, 'opacity-100': !atBottom }",
+            }}
         >
             <div
                 class="fixed z-[1] transition-opacity bg-gray-900 w-full h-full"
