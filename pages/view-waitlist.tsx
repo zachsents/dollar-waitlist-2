@@ -480,7 +480,9 @@ async function JoinForm({ project }: { project: Project }) {
                         description="Watch your inbox for updates."
                         icon="check"
                         x-show="lastEmail"
-                    />
+                    >
+                        <p x-text="lastEmail" class="text-sm text-light" />
+                    </CTACardHeader>
                 </>}
 
             <Stack class="mt-10 gap-2">
