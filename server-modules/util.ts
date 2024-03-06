@@ -57,7 +57,6 @@ export type Project = {
     onlyShowLogo: boolean
     signupGoal: number
     hasSignupGoal: boolean
-    signupCount: number
     allowOverflowSignups: boolean
     colors: {
         primary: string
@@ -136,8 +135,9 @@ export function addProps(htmlStr: string | string[], props: Record<string, any>)
 
 export enum SettingsTabs {
     General = "general",
-    Theme = "theme",
     Signups = "signups",
+    Payouts = "payouts",
+    Theme = "theme",
     Hero = "hero",
     Features = "features",
     Benefits = "benefits",
@@ -147,8 +147,9 @@ export enum SettingsTabs {
 
 export const settingsTabLabels = {
     [SettingsTabs.General]: "General",
-    [SettingsTabs.Theme]: "Theme",
     [SettingsTabs.Signups]: "Signups",
+    [SettingsTabs.Payouts]: "Payouts",
+    [SettingsTabs.Theme]: "Theme",
     [SettingsTabs.Hero]: "Hero",
     [SettingsTabs.Features]: "Features",
     [SettingsTabs.Benefits]: "Benefits",
@@ -264,6 +265,13 @@ export function formatNumber(num: number) {
         .replace(".0", "")
 }
 
+export function formatDollars(num: number, cents: boolean = false) {
+    if (num == null)
+        return ""
+
+    return numeral(cents ? num / 100 : num).format("$0,0.00")
+}
+
 
 export const stripeHeaders = {
     "Content-Type": "application/x-www-form-urlencoded",
@@ -273,4 +281,10 @@ export const stripeHeaders = {
 
 export interface AuthenticatedRequest extends Request {
     currentUser: DecodedIdToken
+}
+
+
+export enum PayoutStatus {
+    Requested = "requested",
+    Paid = "paid",
 }

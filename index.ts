@@ -6,11 +6,11 @@ import cookieParser from "cookie-parser"
 import express, { type NextFunction, type Request, type Response } from "express"
 import type { DecodedIdToken } from "firebase-admin/auth"
 import formidable from "formidable"
-import _, { trim } from "lodash"
+import _ from "lodash"
 import morgan from "morgan"
 import path from "path"
 import { z } from "zod"
-import { FirestoreError, addSignup, admin, createProject, deleteProject, exportSignups, fetchProject, fetchProjectsForUser, updateProject } from "./server-modules/firebase"
+import { FirestoreError, addSignup, admin, createProject, deleteProject, exportSignups, fetchProject, fetchProjectsForUser, requestPayout, updateProject } from "./server-modules/firebase"
 import { SettingsTabs, createUpdatesForForm, encodeImage, stripeHeaders, type AuthenticatedRequest } from "./server-modules/util"
 
 
@@ -206,6 +206,17 @@ app.delete("/projects/:projectId", authenticate({ forProject: true }),
     }
 )
 
+app.post("/projects/:projectId/payouts", authenticate({ forProject: true }),
+    async (req: Request, res: Response) => {
+        await requestPayout(req.params.projectId)
+        res.format({
+            html: renderSnippet("edit-project-form/payouts", {
+                projectId: req.params.projectId
+            }, res),
+        })
+    },
+)
+
 
 /* -------------------------------------------------------------------------- */
 /*                               Project Signups                              */
@@ -221,7 +232,7 @@ app.get("/projects/:projectId/signup",
                 "line_items[0][quantity]": "1",
                 "metadata[projectId]": req.params.projectId,
                 "mode": "payment",
-                "success_url": `http://${req.headers.host}/projects/${req.params.projectId}/successfulsignup?id={CHECKOUT_SESSION_ID}`,
+                "success_url": `http://${req.headers.host}/projects/${req.params.projectId}/successfulsignup?session_id={CHECKOUT_SESSION_ID}`,
             }).toString()
         }).then(response => response.json())
 
@@ -259,22 +270,21 @@ app.get("/projects/:projectId/successfulsignup",
         const projectId = sessionData.metadata.projectId
         const email = sessionData.customer_details?.email || sessionData.customer_email
 
-        addingSignup: try {
-            await addSignup(projectId, email)
+        try {
+            await addSignup(projectId, email, sessionId as string, sessionData.amount_total)
 
             const project = await fetchProject(projectId, ["webhookUrl"])
-            if (!project.webhookUrl)
-                break addingSignup  // fun little syntax
-
-            // potentially unsafe for serverless but i don't want
-            // to wait for some random server to respond
-            fetch(project.webhookUrl, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ email, projectId }),
-            })
+            if (project.webhookUrl) {
+                // potentially unsafe for serverless but i don't want
+                // to wait for some random server to respond
+                fetch(project.webhookUrl, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ email, projectId }),
+                })
+            }
         }
         catch (err) {
             if (!(err instanceof FirestoreError && err.code == 409)) {

@@ -8,7 +8,7 @@ import Menu from "../components/menu"
 import PageShell from "../components/page-shell"
 import TablerIcon from "../components/tabler-icon"
 import { generateProjectColorCSSVariables } from "../server-modules/colors"
-import { fetchProject } from "../server-modules/firebase"
+import { fetchProject, fetchSignupCount } from "../server-modules/firebase"
 import { cgen, formatNumber, type AuthenticatedRequest, type PageProps, type Project, type ProjectBenefit, type ProjectFeature, type ProjectTeamMember } from "../server-modules/util"
 import Anchor from "../components/anchor"
 
@@ -417,9 +417,11 @@ function JoinCard({ project }: { project: Project }) {
 }
 
 
-function JoinForm({ project }: { project: Project }) {
+async function JoinForm({ project }: { project: Project }) {
 
-    const isWaitlistFull = (project.signupCount >= project.signupGoal)
+    const signupCount = await fetchSignupCount(project.id)
+
+    const isWaitlistFull = (signupCount >= project.signupGoal)
         && !project.allowOverflowSignups
         && project.hasSignupGoal
 
@@ -489,8 +491,8 @@ function JoinForm({ project }: { project: Project }) {
 
             <Stack class="mt-10 gap-2">
                 <p class="text-center font-bold">
-                    {project.signupCount > 0 ?
-                        `${formatNumber(project.signupCount)} signed up!` :
+                    {signupCount > 0 ?
+                        `${formatNumber(signupCount)} signed up!` :
                         "Be the first to sign up!"}
                 </p>
 
@@ -499,12 +501,12 @@ function JoinForm({ project }: { project: Project }) {
                         <div class="h-4 w-full rounded-full bg-gray-300 overflow-clip">
                             <div
                                 class="h-full rounded-full max-w-full bg-[var(--wl-primary)]"
-                                style={{ width: `${Math.min(Math.round(((project.signupCount || 0) / project.signupGoal) * 100), 100)}%` }}
+                                style={{ width: `${Math.min(Math.round(((signupCount || 0) / project.signupGoal) * 100), 100)}%` }}
                             />
                         </div>
 
                         <p class="text-light text-sm mt-1 mr-xs text-right">
-                            {formatNumber(project.signupCount || 0)} / {formatNumber(project.signupGoal)}
+                            {formatNumber(signupCount || 0)} / {formatNumber(project.signupGoal)}
                         </p>
                     </div>}
             </Stack>

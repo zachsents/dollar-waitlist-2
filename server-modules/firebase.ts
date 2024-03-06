@@ -1,9 +1,10 @@
 import admin, { type ServiceAccount } from "firebase-admin"
 import { GoogleAuth } from "google-auth-library"
 import serviceAccount from "../service-account.json"
-import type { Project } from "./util"
+import { PayoutStatus, formatDollars, type Project } from "./util"
 import _ from "lodash"
 import Papa from "papaparse"
+import crypto from "crypto"
 
 
 const app = admin.initializeApp({
@@ -90,23 +91,22 @@ export async function updateProject(projectId: string, updates: Record<string, a
 }
 
 
-export async function addSignup(projectId: string, email: string) {
-
-    const newDoc = convertToFirestoreValue({
-        email,
-        projectId,
-    })
-
-    const documentId = `${projectId}_${email}`.replaceAll(/\W+/g, "_")
-
+export async function addSignup(projectId: string, email: string, stripeCheckoutSessionId: string, paymentAmount: number) {
     await firestoreRequest("signups", {
         method: "POST",
         body: {
-            fields: newDoc.mapValue.fields,
+            fields: convertToFirestoreValue({
+                email,
+                projectId,
+                stripeCheckoutSessionId,
+                paymentAmount,
+            }).mapValue.fields,
         },
         queryParams: {
-            documentId,
-        }
+            documentId: crypto.createHash("sha256")
+                .update(stripeCheckoutSessionId)
+                .digest("base64url"),
+        },
     })
 }
 
@@ -135,6 +135,7 @@ export async function fetchSignupCount(projectId: string) {
 
     return data[0].result.aggregateFields.field_1.integerValue
 }
+
 
 export async function exportSignups(projectId: string, mode?: "csv" | "json" | "js") {
 
@@ -170,6 +171,127 @@ export async function exportSignups(projectId: string, mode?: "csv" | "json" | "
 
     if (mode === "csv")
         return Papa.unparse(formattedData)
+}
+
+
+export async function fetchPayouts(projectId: string) {
+    const data: Snapshot[] = await firestoreRequest(":runQuery", {
+        body: {
+            structuredQuery: {
+                from: [{
+                    collectionId: "payouts"
+                }],
+                where: {
+                    fieldFilter: {
+                        field: { fieldPath: "projectId" },
+                        op: "EQUAL",
+                        value: { stringValue: projectId },
+                    }
+                },
+            }
+        }
+    })
+
+    return data
+        .filter(snap => snap.document)
+        .map(snap => formatDocument(snap.document!))
+}
+
+
+export async function fetchCurrentBalance(projectId: string) {
+    const [signupsTotal, payoutsTotal] = await Promise.all([
+        firestoreRequest(":runAggregationQuery", {
+            body: {
+                structuredAggregationQuery: {
+                    aggregations: [{
+                        sum: {
+                            field: { fieldPath: "paymentAmount" },
+                        },
+                    }],
+                    structuredQuery: {
+                        from: [{
+                            collectionId: "signups"
+                        }],
+                        where: {
+                            fieldFilter: {
+                                field: { fieldPath: "projectId" },
+                                op: "EQUAL",
+                                value: { stringValue: projectId },
+                            }
+                        }
+                    }
+                }
+            }
+        }).then(data => data[0].result.aggregateFields.field_1.integerValue),
+
+        firestoreRequest(":runAggregationQuery", {
+            body: {
+                structuredAggregationQuery: {
+                    aggregations: [{
+                        sum: {
+                            field: { fieldPath: "amount" },
+                        },
+                    }],
+                    structuredQuery: {
+                        from: [{
+                            collectionId: "payouts"
+                        }],
+                        where: {
+                            compositeFilter: {
+                                op: "AND",
+                                filters: [{
+                                    fieldFilter: {
+                                        field: { fieldPath: "projectId" },
+                                        op: "EQUAL",
+                                        value: { stringValue: projectId },
+                                    }
+                                }, {
+                                    fieldFilter: {
+                                        field: { fieldPath: "status" },
+                                        op: "EQUAL",
+                                        value: { stringValue: PayoutStatus.Paid },
+                                    }
+                                }]
+                            }
+                        }
+                    }
+                }
+            }
+        }).then(data => data[0].result.aggregateFields.field_1.integerValue),
+    ])
+
+    return signupsTotal - payoutsTotal
+}
+
+
+export async function requestPayout(projectId: string) {
+    const currentBalance = await fetchCurrentBalance(projectId)
+
+    const newDoc = await firestoreRequest("payouts", {
+        method: "POST",
+        body: {
+            fields: convertToFirestoreValue({
+                projectId,
+                status: PayoutStatus.Requested,
+                amount: currentBalance,
+            }).mapValue.fields,
+        },
+    })
+
+    const { id: payoutId } = formatDocument(newDoc as Document)
+
+    await fetch(process.env.SEND_PAYOUT_REQUEST_URL as string, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            projectId,
+            payoutId,
+            amount: currentBalance,
+            formattedAmount: formatDollars(currentBalance, true),
+        }),
+    })
 }
 
 
@@ -270,7 +392,7 @@ async function handleJsonResponse(res: Response) {
         return res.json()
 
     const response = await res.json()
-    console.error(response.error)
+    console.error(response)
     throw new FirestoreError(response.error)
 }
 
