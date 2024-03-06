@@ -58,6 +58,8 @@ export type Project = {
     signupGoal: number
     hasSignupGoal: boolean
     allowOverflowSignups: boolean
+    liveSiteUrl: string
+    webhookUrl: string
     colors: {
         primary: string
         secondary: string

@@ -431,63 +431,53 @@ async function JoinForm({ project }: { project: Project }) {
             x-data={`{ lastEmail: localStorage.getItem('dwsignup-${project.id}') }`}
             x-cloak
         >
-            <Stack x-show="lastEmail">
-                <Group noWrap class="text-2xl justify-center my-md">
-                    <TablerIcon name="check" />
-                    <p class="font-bold whitespace-nowrap">
-                        You're signed up!
-                    </p>
-                </Group>
-                <p x-text="lastEmail" class="text-center text-light" />
-                <p class="text-center text-light">
-                    Watch your inbox for updates.
-                </p>
-            </Stack>
+            {project.liveSiteUrl ?
+                <Stack class="gap-6">
+                    <CTACardHeader
+                        title="Get started now!"
+                        description=" The product is now live."
+                        icon="confetti"
+                    />
+                    <Button
+                        color=""
+                        class="bg-[var(--wl-primary)] self-center text-lg font-bold"
+                        href={project.liveSiteUrl}
+                        rightIcon="external-link"
+                    >
+                        Go to Product
+                    </Button>
+                </Stack> : <>
+                    {isWaitlistFull ?
+                        <CTACardHeader
+                            title="That's a wrap!"
+                            description="The waitlist is full."
+                            icon="gift"
+                            x-show="!lastEmail"
+                        /> :
+                        <Stack x-show="!lastEmail" class="gap-6">
+                            <CTACardHeader
+                                title="Join the waitlist!"
+                                description="You'll get early access to the app."
+                                icon="ballpen"
+                            />
+                            <Button
+                                color=""
+                                class="bg-[var(--wl-primary)] self-center text-lg font-bold"
+                                href={`/projects/${project.id}/signup`}
+                                rightIcon="external-link"
+                            >
+                                <span>Join Waitlist</span>
+                                <span>$1</span>
+                            </Button>
+                        </Stack>}
 
-            {isWaitlistFull ?
-                <Stack x-show="!lastEmail">
-                    <Group noWrap class="text-2xl justify-center my-md">
-                        <TablerIcon name="gift" />
-                        <p class="font-bold whitespace-nowrap">
-                            That's a wrap!
-                        </p>
-                    </Group>
-                    <p class="text-center text-light">
-                        The waitlist is full.
-                    </p>
-                </Stack> :
-                <Stack x-show="!lastEmail" class="gap-6">
-                    <div>
-                        <Group noWrap class="text-2xl justify-center my-md">
-                            <TablerIcon name="ballpen" />
-                            <p class="font-bold whitespace-nowrap">
-                                Join the waitlist!
-                            </p>
-                        </Group>
-                        <p class="text-center text-light">
-                            You'll get early access to the app.
-                        </p>
-                    </div>
-
-                    <div class="flex flex-col items-stretch gap-4">
-                        <Button
-                            color=""
-                            class="bg-[var(--wl-primary)] self-center text-lg font-bold"
-                            href={`/projects/${project.id}/signup`}
-                            rightIcon="external-link"
-                        >
-                            <span>Join Waitlist</span>
-                            <span>$1</span>
-                        </Button>
-                        {/* <div class="flex items-center gap-1 flex-nowrap justify-center">
-                            <span class="text-xs text-light">Powered by</span>
-                            <TablerIcon name="brand-stripe" class="text-violet-600 text-xs" />
-                            <span class="text-violet-600 text-xs">
-                                Stripe
-                            </span>
-                        </div> */}
-                    </div>
-                </Stack>}
+                    <CTACardHeader
+                        title="You're signed up!"
+                        description="Watch your inbox for updates."
+                        icon="check"
+                        x-show="lastEmail"
+                    />
+                </>}
 
             <Stack class="mt-10 gap-2">
                 <p class="text-center font-bold">
@@ -511,6 +501,30 @@ async function JoinForm({ project }: { project: Project }) {
                     </div>}
             </Stack>
         </div>
-
     )
 }
+
+
+function CTACardHeader({ title, description, icon, children, ...props }: CTACardHeaderProps) {
+    return (
+        <Stack {...props}>
+            <Group noWrap class="text-2xl justify-center my-md">
+                <TablerIcon name={icon} />
+                <p class="font-bold whitespace-nowrap">
+                    {title}
+                </p>
+            </Group>
+            {children}
+            <p class="text-center text-light">
+                {description}
+            </p>
+        </Stack>
+    )
+}
+
+type CTACardHeaderProps = {
+    title: string,
+    description: string,
+    icon: string,
+    children?: any
+} & JSX.IntrinsicElements["div"]

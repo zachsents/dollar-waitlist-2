@@ -76,6 +76,17 @@ export default async function GeneralSettings({ projectId }: SettingsProps) {
 
             <hr class="col-span-2" />
 
+            <Input
+                label="Live Site URL"
+                description="The URL where your project is hosted. Fill this in when your waitlist period is over and your product is live. Including this will prevent further signups. Leave blank to allow signups."
+                name="liveSiteUrl"
+                type="text"
+                placeholder="https://example.com"
+                value={project.liveSiteUrl || ""}
+                nestInLabel={false}
+            />
+
+            <hr class="col-span-2" />
 
             <details>
                 <summary class="text-light cursor-pointer">

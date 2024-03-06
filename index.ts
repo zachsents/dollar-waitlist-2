@@ -106,6 +106,7 @@ app.post("/projects/:projectId/settings/:tab", authenticate({ forProject: true }
                     ...files.logo && {
                         logo: await encodeImage(files.logo[0]),
                     },
+                    liveSiteUrl: fields.liveSiteUrl?.[0] || null,
                 })
                 break
             case SettingsTabs.Theme: break

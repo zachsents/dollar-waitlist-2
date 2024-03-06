@@ -27,6 +27,10 @@ export default async function PayoutsSettings({ projectId }: SettingsProps) {
                 </Button>
             </div>
 
+            <p class="text-sm text-light">
+                Balance amount shown is gross revenue. Your actual payout will have platform fees subtracted.
+            </p>
+
             <hr class="col-span-full" />
 
             <table id="payouts-table">
