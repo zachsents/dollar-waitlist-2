@@ -481,7 +481,7 @@ async function JoinForm({ project }: { project: Project }) {
                         icon="check"
                         x-show="lastEmail"
                     >
-                        <p x-text="lastEmail" class="text-sm text-light" />
+                        <p x-text="lastEmail" class="text-light text-center" />
                     </CTACardHeader>
                 </>}
 
