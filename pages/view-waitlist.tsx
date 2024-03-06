@@ -33,10 +33,12 @@ export default async function ViewWaitlistPage({ req }: PageProps) {
 
     return (
         <PageShell
-            class="bg-gray-50 lg:glowy-bg pb-40"
+            class="bg-gray-50 pb-40"
             style={projectColors}
             afterBody={twitterScript.trim()}
         >
+            <div class="w-full h-full absolute top-0 left-0 lg:glowy-bg opacity-30" />
+
             <header class="fixed z-30 top-0 left-0 w-full px-8 py-4">
                 <Group noWrap class="gap-10 justify-between max-w-7xl mx-auto w-full">
                     <Brand project={project} />
