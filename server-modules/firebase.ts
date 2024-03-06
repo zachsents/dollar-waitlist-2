@@ -144,7 +144,7 @@ async function firestoreRequest(path: string, {
     queryParams = {}
 }: FirestoreRequestOptions = {}) {
 
-    console.log("Firestore Request:", method, fullName(path), queryParams, body)
+    // console.log("Firestore Request:", method, fullName(path), queryParams, body)
 
     const url = new URL(`https://firestore.googleapis.com/v1/${fullName(path)}`)
 

@@ -177,3 +177,4 @@ dist
 
 .env
 service-account.json
+public/scripts/*

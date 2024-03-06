@@ -661,12 +661,12 @@ video {
   margin-top: 5rem;
 }
 
-.mt-\[0\.25em\] {
-  margin-top: 0.25em;
-}
-
 .mt-8 {
   margin-top: 2rem;
+}
+
+.mt-\[0\.25em\] {
+  margin-top: 0.25em;
 }
 
 .flex {
@@ -1283,10 +1283,6 @@ video {
 
 .pb-40 {
   padding-bottom: 10rem;
-}
-
-.pt-8 {
-  padding-top: 2rem;
 }
 
 .text-left {

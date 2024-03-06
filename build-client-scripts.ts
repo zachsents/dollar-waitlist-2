@@ -7,8 +7,8 @@ const environmentVariables = await Bun.file("./.env")
     .text()
     .then(text => Object.fromEntries(
         text.match(/^\w+(?=\=)/gm)?.map(key => [
-            `Bun.env.${key}`,
-            JSON.stringify(Bun.env[key])
+            `process.env.${key}`,
+            JSON.stringify(process.env[key])
         ]) ?? []
     ))
 
