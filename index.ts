@@ -22,7 +22,8 @@ app.use(morgan("dev"))
 app.use(express.static(path.join(import.meta.path, "../public")))
 
 
-app.get("/", (_, res: Response) => res.redirect("/projects"))
+app.get("/", (_, res: Response) => res.redirect("/projects/dollar-waitlist"))
+app.get(["/dashboard", "/app", "/waitlists"], (_, res: Response) => res.redirect("/projects"))
 
 
 /* -------------------------------------------------------------------------- */
@@ -59,7 +60,7 @@ app.post("/api/login",
 app.get("/logout",
     async (_, res: Response) => {
         res.clearCookie("session")
-        res.redirect("/login")
+        res.redirect("/")
     }
 )
 
@@ -475,7 +476,7 @@ type AuthenticateMiddlewareOptions = {
 async function requireNotLoggedIn(req: Request, res: Response, next: NextFunction) {
     try {
         await admin.auth().verifySessionCookie(req.cookies.session || "", true)
-        res.redirect("/")
+        res.redirect("/projects")
     }
     catch (err) {
         next()

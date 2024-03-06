@@ -43,7 +43,7 @@ window.signIn = async (lastLogin?: string) => {
         if (!res.ok)
             throw new Error("Failed to sign in")
 
-        window.location.assign("/")
+        window.location.assign("/projects")
     }
     catch (err) {
         console.error(err)
