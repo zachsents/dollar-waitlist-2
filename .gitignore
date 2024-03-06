@@ -178,3 +178,4 @@ dist
 .env
 service-account.json
 public/scripts/*
+public/styles.css

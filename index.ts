@@ -386,9 +386,22 @@ app.get("/*", renderPage())
 /* -------------------------------------------------------------------------- */
 
 const port = process.env.PORT || 3000
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`)
-})
+
+if (port == "443") {
+    const fs = require("fs")
+    require("https").createServer({
+        key: fs.readFileSync("/etc/letsencrypt/live/dollarwaitlist.com/privkey.pem"),
+        cert: fs.readFileSync("/etc/letsencrypt/live/dollarwaitlist.com/fullchain.pem"),
+        ca: fs.readFileSync("/etc/letsencrypt/live/dollarwaitlist.com/chain.pem"),
+    }, app).listen(port, () => {
+        console.log(`Listening on ${port}...`)
+    })
+}
+else {
+    app.listen(port, () => {
+        console.log(`Server is running on port ${port}`)
+    })
+}
 
 
 /* -------------------------------------------------------------------------- */
