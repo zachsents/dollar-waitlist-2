@@ -24,6 +24,7 @@ app.use(express.static(path.join(import.meta.path, "../public")))
 
 app.get("/", (_, res: Response) => res.redirect("/projects/dollar-waitlist"))
 app.get(["/dashboard", "/app", "/waitlists"], (_, res: Response) => res.redirect("/projects"))
+app.get("/waitlist/*", (_, res: Response) => res.redirect("/"))
 
 
 /* -------------------------------------------------------------------------- */
