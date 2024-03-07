@@ -191,11 +191,11 @@ function SectionLabel({ label = "" }: { label: string }) {
         <div
             class="flex justify-end items-center gap-8 sticky top-20 lg:top-10 z-10 pointer-events-none"
         >
-            <span
+            <h2
                 class="text-center text-light text-sm uppercase font-bold p-4 rounded-full border-[1px] border-gray-300 border-dashed cursor-pointer hover:text-dark hover:border-dark transition"
             >
                 {label}
-            </span>
+            </h2>
         </div>
     )
 }
@@ -203,7 +203,7 @@ function SectionLabel({ label = "" }: { label: string }) {
 
 function Feature({ feature, ...props }: { feature: ProjectFeature } & StackProps) {
 
-    const imgComponent = <img src={feature.image} />
+    const imgComponent = <img src={feature.image} alt={`Feature: ${feature.title}`} />
 
     return (
         <Stack
@@ -255,9 +255,9 @@ function Benefit({ benefit }: { benefit: ProjectBenefit }) {
                 <TablerIcon name={benefit.icon} />
             </div>
 
-            <h3 class="text-xl font-medium text-center -mb-2">
+            <h4 class="text-xl font-medium text-center -mb-2">
                 {benefit.title}
-            </h3>
+            </h4>
             {benefit.description &&
                 <p class="text-center">
                     {benefit.description}
@@ -322,7 +322,10 @@ function TeamMemberCard({ member: { avatar, name, title, linkedin, twitter, badg
         <div class="bg-white border-default rounded-xl shadow-sm px-4 py-10 lg:px-10">
             <div class="flex items-center flex-col lg:flex-row justify-between gap-2">
                 <Group noWrap class="!gap-8">
-                    <img src={avatar} class="h-20 w-auto aspect-square rounded-full shrink-0" />
+                    <img
+                        src={avatar} class="h-20 w-auto aspect-square rounded-full shrink-0"
+                        alt={`${name} avatar`}
+                    />
 
                     <div>
                         <p class="font-medium text-lg">{name}</p>
@@ -343,11 +346,13 @@ function TeamMemberCard({ member: { avatar, name, title, linkedin, twitter, badg
                         <SocialLink
                             icon="brand-linkedin"
                             href={linkedin}
+                            aria-label={`${name}'s LinkedIn profile`}
                         />}
                     {twitter &&
                         <SocialLink
                             icon="brand-twitter"
                             href={twitter}
+                            aria-label={`${name}'s Twitter profile`}
                         />}
                 </Group>
             </div>
@@ -516,9 +521,9 @@ function CTACardHeader({ title, description, icon, children, ...props }: CTACard
         <Stack {...props}>
             <Group noWrap class="text-2xl justify-center my-md">
                 <TablerIcon name={icon} />
-                <p class="font-bold whitespace-nowrap">
+                <h3 class="font-bold whitespace-nowrap">
                     {title}
-                </p>
+                </h3>
             </Group>
             {children}
             <p class="text-center text-light">
