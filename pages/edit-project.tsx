@@ -26,7 +26,7 @@ export default async function EditProjectPage({ req }: PageProps) {
                 <Breadcrumbs
                     class="text-sm text-light"
                     segments={[
-                        <Anchor href="/">
+                        <Anchor href="/projects">
                             Projects
                         </Anchor>,
                         <Anchor href={`/projects/${project.id}/settings`}>
