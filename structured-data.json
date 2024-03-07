@@ -10,14 +10,13 @@
     "review": {
         "@type": "Review",
         "positiveNotes": "Validated this very site with it.",
+        "author": {
+            "@type": "Person",
+            "name": "Zach Sents"
+        },
         "reviewRating": {
             "@type": "Rating",
-            "ratingValue": "5",
-            "author": {
-                "@type": "Person",
-                "givenName": "Zach",
-                "familyName": "Sents"
-            }
+            "ratingValue": "5"
         }
     }
 }
