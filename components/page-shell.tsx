@@ -16,7 +16,7 @@ export default function PageShell({ children, title, afterBody, scriptName, ...p
                 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <script type="application/ld+json">
-                    {structuredData}
+                    {JSON.stringify(structuredData, null, 2)}
                 </script>
 
                 {/* Meta Description */}
