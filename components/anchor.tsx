@@ -1,9 +1,11 @@
+import { cgen } from "../server-modules/util"
 
-export default function Anchor({ class: classNames, children, ...props }: AnchorProps) {
+export default function Anchor({ children, underline = false, targetBlank = false, ...props }: AnchorProps) {
     return (
         <a
-            class={`component-anchor hover:text-green-600 data-[active]:text-green-600 ${classNames || ""}`}
+            {...targetBlank && { target: "_blank" }}
             {...props}
+            class={cgen("component-anchor hover:text-green-600 data-[active]:text-green-600", underline && "underline", props)}
         >
             {children}
         </a>
@@ -11,6 +13,7 @@ export default function Anchor({ class: classNames, children, ...props }: Anchor
 }
 
 export type AnchorProps = {
-    class?: string,
     children: JSX.Element | JSX.Element[],
+    underline?: boolean
+    targetBlank?: boolean
 } & JSX.IntrinsicElements["a"]

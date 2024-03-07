@@ -1,4 +1,5 @@
 import { alpineJsonStringify, cc, cgen } from "../server-modules/util"
+import Anchor from "./anchor"
 import Button from "./button"
 import Input from "./input"
 import TablerIcon from "./tabler-icon"
@@ -74,6 +75,9 @@ function BenefitInput({ id, title, description, icon }: BenefitInputProps) {
             />
             <Input
                 label="Icon"
+                description={<>
+                    Uses Tabler Icons. <Anchor href="https://tabler.io/icons" targetBlank underline>Search them here.</Anchor> Enter the lowercase name of the icon.
+                </>}
                 type="text"
                 placeholder="robot"
                 x-model="icon"

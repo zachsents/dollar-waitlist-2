@@ -51,5 +51,5 @@ export type InputProps = {
     textarea?: boolean
     beforeInput?: JSX.Element
     afterInput?: JSX.Element
-    description?: string
+    description?: any
 } & JSX.IntrinsicElements["input"] & JSX.IntrinsicElements["textarea"]

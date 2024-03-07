@@ -1,4 +1,5 @@
 import { alpineJsonStringify, cc, cgen, type ProjectFeature } from "../server-modules/util"
+import Anchor from "./anchor"
 import Button from "./button"
 import ImageInput from "./image-input"
 import Input from "./input"
@@ -78,6 +79,9 @@ export default function FeatureInput({ id, title, description, icon, addGradient
             />
             <Input
                 label="Icon"
+                description={<>
+                    Uses Tabler Icons. <Anchor href="https://tabler.io/icons" targetBlank underline>Search them here.</Anchor> Enter the lowercase name of the icon.
+                </>}
                 type="text"
                 placeholder="robot"
                 x-bind:name="`content.features.${id}.icon`" 
