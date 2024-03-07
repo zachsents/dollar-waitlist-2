@@ -1,0 +1,23 @@
+{
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Dollar Waitlist",
+    "applicationCategory": "BusinessApplication",
+    "offers": {
+        "@type": "Offer",
+        "price": "0"
+    },
+    "review": {
+        "@type": "Review",
+        "positiveNotes": "Validated this very site with it.",
+        "reviewRating": {
+            "@type": "Rating",
+            "ratingValue": "5",
+            "author": {
+                "@type": "Person",
+                "givenName": "Zach",
+                "familyName": "Sents"
+            }
+        }
+    }
+}

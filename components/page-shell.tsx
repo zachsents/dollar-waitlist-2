@@ -1,4 +1,5 @@
 import { cgen } from "../server-modules/util"
+import structuredData from "../structured-data.json"
 
 
 const siteName = "Dollar Waitlist"
@@ -14,6 +15,9 @@ export default function PageShell({ children, title, afterBody, scriptName, ...p
                 <meta charset="UTF-8" />
                 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <script type="application/ld+json">
+                    {structuredData}
+                </script>
 
                 {/* Meta Description */}
                 <meta
