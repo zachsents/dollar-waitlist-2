@@ -56,6 +56,8 @@ You'll need to create a `.env` file at the project root with the following envir
 
 `STRIPE_API_KEY`: The API key for Stripe. Stripe is used to generate checkout sessions.
 
+`STRIPE_PRICE_ID`: The ID of the Price object in Stripe for the Product that you make to represent a waitlist signup. e.g. `price_xxx123abc`
+
 `SEND_PAYOUT_REQUEST_URL`: The URL of a webhook for when someone requests a payout. I was just using a [WorkflowDog](https://workflow.dog) automation that sent me an email, but I recommend writing some additional code to handle this via an email API like [Resend](https://resend.com).
 
 ### Firebase
@@ -68,7 +70,7 @@ For the server-side, you'll need to create service account credentials, which th
 
 ### Stripe
 
-This project uses stripe to generate links for checkout sessions in order to collect payments from users. Currently, a Price ID for a product is hard-coded (CTRL+F for "price_" in [`index.ts`](https://github.com/zachsents/dollar-waitlist-2/blob/main/index.ts)). This should be replaced with the Price ID of the prodcut that you create in your Stripe dashboard. It should also probably be moved out to an environment variable.
+This project uses stripe to generate links for checkout sessions in order to collect payments from users. A single Product and Price are used to represent a waitlist signup.
 
 ### SSL
 

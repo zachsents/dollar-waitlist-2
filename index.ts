@@ -231,7 +231,7 @@ app.get("/projects/:projectId/signup",
             method: "POST",
             headers: stripeHeaders,
             body: new URLSearchParams({
-                "line_items[0][price]": "price_1Or62aHYINHn5cdTih9cTyTH",
+                "line_items[0][price]": process.env.STRIPE_PRICE_ID!,
                 "line_items[0][quantity]": "1",
                 "metadata[projectId]": req.params.projectId,
                 "mode": "payment",
