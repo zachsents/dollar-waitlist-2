@@ -60,6 +60,8 @@ You'll need to create a `.env` file at the project root with the following envir
 
 `SEND_PAYOUT_REQUEST_URL`: The URL of a webhook for when someone requests a payout. I was just using a [WorkflowDog](https://workflow.dog) automation that sent me an email, but I recommend writing some additional code to handle this via an email API like [Resend](https://resend.com).
 
+`LETS_ENCRYPT_DIR`: The directory where your Let's Encrypt SSL certificates were placed. See SSL section for more info. e.g. `/etc/letsencrypt/live/dollarwaitlist.com`
+
 ### Firebase
 
 You'll need to create a Firebase project. Once in your project dashboard, you'll need to get 2 sets of credentials.
