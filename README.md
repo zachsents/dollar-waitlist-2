@@ -76,15 +76,15 @@ This project uses stripe to generate links for checkout sessions in order to col
 
 ### SSL
 
-When running on port 443, server expects the following SSL files to be present:
+When running on port 443, server will try to load the following SSL files:
 ```
-/etc/letsencrypt/live/dollarwaitlist.com/privkey.pem
-/etc/letsencrypt/live/dollarwaitlist.com/fullchain.pem
-/etc/letsencrypt/live/dollarwaitlist.com/chain.pem
+${LETS_ENCRYPT_DIR}/privkey.pem
+${LETS_ENCRYPT_DIR}/fullchain.pem
+${LETS_ENCRYPT_DIR}/chain.pem
 ```
 You can generate these files using Certbot, [instructions here](https://certbot.eff.org/instructions?ws=other&os=ubuntufocal). You'll need access to the domain, first. It's actually a bit easier if you point the domain to whatever server you're generating the files on first.
 
-These should also probably be moved to environment variables.
+Afterwards, set the resultant directory to the `LETS_ENCRYPT_DIR` environment variable. This is also described in the Environment Variables section.
 
 ### Running for development
 
